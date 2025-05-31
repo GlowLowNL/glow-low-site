@@ -1,14 +1,22 @@
 import { useState } from "react";
 import Head from "next/head";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Home() {
   const [email, setEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    alert("Thanks! We’ll notify you when GlowLow launches 🚀");
+  e.preventDefault();
+
+  const { error } = await supabase.from("emails").insert({ email });
+
+  if (error) {
+    alert("Oeps! Dit e-mailadres staat al op de lijst 🚀");
+  } else {
+    alert("Bedankt! Je hoort van ons bij de lancering 🥳");
     setEmail("");
-  };
+  }
+};
 
   return (
     <>
