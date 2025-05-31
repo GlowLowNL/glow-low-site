@@ -34,7 +34,7 @@ export default function Home() {
           <p className="mt-4 text-lg">
             Schoonheidsdeals, direct geleverd. <br />
             Stel een prijsalert in en ontspan – wij gaan laag, zodat jouw
-            portemonnee dat ook blijft.
+            portemonnee hoog blijft.
           </p>
 
           <form
