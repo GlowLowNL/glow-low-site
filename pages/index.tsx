@@ -61,6 +61,21 @@ export default function Home() {
             Geen spam. Eén mailtje zodra we live gaan.
           </p>
         </section>
+        {/* Footer */}
+<footer className="mt-12 text-sm text-gray-500 text-center">
+  © {new Date().getFullYear()} GlowLow ·{" "}
+  <a href="/disclaimer" className="underline mx-1">
+    Disclaimer
+  </a>
+  ·{" "}
+  <a href="/privacy" className="underline mx-1">
+    Privacy
+  </a>
+  ·{" "}
+  <a href="mailto:info@glowlow.nl" className="underline">
+    Contact
+  </a>
+</footer>
       </main>
     </>
   );
