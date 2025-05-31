@@ -6,25 +6,25 @@ export default function Home() {
   const [email, setEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const { error } = await supabase.from("emails").insert({ email });
+    const { error } = await supabase.from("emails").insert({ email });
 
-  if (error) {
-    alert("Oeps! Dit e-mailadres staat al op de lijst 🚀");
-  } else {
-    alert("Bedankt! Je hoort van ons bij de lancering 🥳");
-    setEmail("");
-  }
-};
+    if (error) {
+      alert("Oeps! Dit e-mailadres staat al op de lijst 🚀");
+    } else {
+      alert("Bedankt! Je hoort van ons bij de lancering 🥳");
+      setEmail("");
+    }
+  };
 
   return (
     <>
       <Head>
-        <title>GlowLow – Beauty bargains, delivered</title>
+        <title>GlowLow – Schoonheidsdeals direct geleverd</title>
         <meta
           name="description"
-          content="GlowLow watches prices on your favourite beauty & skincare products and pings you the moment they drop."
+          content="GlowLow volgt de prijzen van je favoriete beauty- en skincare-producten en stuurt je meteen een seintje als ze zakken."
         />
       </Head>
 
@@ -32,9 +32,9 @@ export default function Home() {
         <section className="text-center max-w-2xl">
           <h1 className="text-5xl font-extrabold text-rose-600">GlowLow</h1>
           <p className="mt-4 text-lg">
-            Beauty bargains, delivered. <br />
-            Set a price alert and relax – we’ll glow&nbsp;low, so your wallet
-            doesn’t go&nbsp;high.
+            Schoonheidsdeals, direct geleverd. <br />
+            Stel een prijsalert in en ontspan – wij gaan laag, zodat jouw
+            portemonnee dat ook blijft.
           </p>
 
           <form
@@ -44,7 +44,7 @@ export default function Home() {
             <input
               required
               type="email"
-              placeholder="you@example.com"
+              placeholder="jij@voorbeeld.nl"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full sm:w-80 rounded-full px-5 py-3 text-lg shadow border border-gray-300"
@@ -53,12 +53,12 @@ export default function Home() {
               type="submit"
               className="bg-rose-600 hover:bg-rose-700 text-white rounded-full px-8 py-3 text-lg font-semibold shadow"
             >
-              Notify me
+              Houd me op de hoogte
             </button>
           </form>
 
           <p className="mt-2 text-sm text-gray-600">
-            Zero spam. We’ll e-mail you once when we launch.
+            Geen spam. Eén mailtje zodra we live gaan.
           </p>
         </section>
       </main>
