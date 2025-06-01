@@ -64,17 +64,13 @@ export default function Home() {
         {/* Footer */}
 <footer className="mt-12 text-sm text-gray-500 text-center">
   © {new Date().getFullYear()} GlowLow ·{" "}
-  <a href="/disclaimer" className="underline mx-1">
-    Disclaimer
-  </a>
-  ·{" "}
-  <a href="/privacy" className="underline mx-1">
-    Privacy
-  </a>
-  ·{" "}
-  <a href="mailto:info@glowlow.nl" className="underline">
-    Contact
-  </a>
+  <a href="/disclaimer" className="underline mx-1">Disclaimer</a> ·{" "}
+  <a href="/privacy" className="underline mx-1">Privacy</a> ·{" "}
+  <a href="mailto:info@glowlow.nl" className="underline">Contact</a>
+  <br />
+  <span className="italic">
+    Deze site gebruikt <strong>Awin</strong> affiliate-links.
+  </span>
 </footer>
       </main>
     </>
