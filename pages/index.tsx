@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Head from "next/head";
 import { supabase } from "../lib/supabaseClient";
 
 export default function Home() {
   const [email, setEmail] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     const { error } = await supabase.from("emails").insert({ email });
