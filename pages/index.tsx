@@ -1,8 +1,12 @@
 import { useState, type FormEvent } from "react";
 import Head from "next/head";
 import { supabase } from "../lib/supabaseClient";
+import { loadProducts, type Product } from "../lib/loadProducts";
+import type { GetStaticProps } from "next";
 
-export default function Home() {
+type Props = { products: Product[] };
+
+export default function Home({ products }: Props) {
   const [email, setEmail] = useState("");
 
   const handleSubmit = async (e: FormEvent) => {
@@ -61,6 +65,22 @@ export default function Home() {
             Geen spam. Eén mailtje zodra we live gaan.
           </p>
         </section>
+
+        <section className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-3 w-full max-w-5xl">
+          {products.map((p) => (
+            <div key={p.ean} className="bg-white rounded-lg shadow p-4 flex flex-col items-center text-center">
+              <img src={p.image_url} alt={p.product_name} className="w-32 h-32 object-contain mb-3" />
+              <h3 className="font-semibold">{p.product_name}</h3>
+              <p className="text-rose-600 font-bold mt-1">€{p.search_price.toFixed(2)}</p>
+              <a
+                href={p.aw_product_url}
+                className="mt-2 text-sm text-white bg-rose-600 hover:bg-rose-700 px-3 py-1 rounded"
+              >
+                Bekijk
+              </a>
+            </div>
+          ))}
+        </section>
         {/* Footer */}
 <footer className="mt-12 text-sm text-gray-500 text-center">
   © {new Date().getFullYear()} GlowLow ·{" "}
@@ -76,3 +96,8 @@ export default function Home() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps<Props> = async () => {
+  const products = loadProducts();
+  return { props: { products } };
+};
