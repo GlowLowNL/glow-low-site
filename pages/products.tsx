@@ -84,13 +84,13 @@ export default function ProductsPage() {
       <Head>
         <title>
           {filters.query 
-            ? `"${filters.query}" - Beauty Products | Glowlow`
-            : 'Beauty Products | Glowlow'
+            ? `"${filters.query}" - Beauty Producten | Glowlow`
+            : 'Beauty Producten | Glowlow'
           }
         </title>
         <meta 
           name="description" 
-          content="Compare prices on thousands of beauty and skincare products from top European retailers. Find the best deals on makeup, skincare, and fragrance." 
+          content="Vergelijk prijzen van duizenden beauty en huidverzorgingsproducten van topretailers in Europa. Vind de beste deals op make-up, huidverzorging en parfum." 
         />
       </Head>
 
@@ -98,10 +98,10 @@ export default function ProductsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            {filters.query ? `Search results for "${filters.query}"` : 'Beauty Products'}
+            {filters.query ? `Zoekresultaten voor "${filters.query}"` : 'Beauty Producten'}
           </h1>
           <p className="text-muted-foreground">
-            Compare prices across multiple retailers and find the best deals
+            Vergelijk prijzen van meerdere retailers en vind de beste deals
           </p>
         </div>
 
@@ -117,23 +117,23 @@ export default function ProductsPage() {
         {data && (
           <div className="flex justify-between items-center mb-6">
             <p className="text-muted-foreground">
-              Showing {data.data.length} of {data.pagination.total} products
-              {data.pagination.page > 1 && ` (page ${data.pagination.page})`}
+              {data.data.length} van {data.pagination.total} producten worden getoond
+              {data.pagination.page > 1 && ` (pagina ${data.pagination.page})`}
             </p>
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Sort by:</span>
+              <span className="text-sm text-muted-foreground">Sorteer op:</span>
               <select 
                 value={filters.sortBy || ''} 
                 onChange={(e) => handleSortChange(e.target.value as any)}
                 className="border border-input rounded-md px-3 py-1 text-sm bg-background"
               >
-                <option value="">Default</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="name">Name</option>
-                <option value="brand">Brand</option>
-                <option value="newest">Newest</option>
+                <option value="">Standaard</option>
+                <option value="price_asc">Prijs: Laag naar Hoog</option>
+                <option value="price_desc">Prijs: Hoog naar Laag</option>
+                <option value="name">Naam</option>
+                <option value="brand">Merk</option>
+                <option value="newest">Nieuwste</option>
               </select>
             </div>
           </div>
@@ -142,8 +142,8 @@ export default function ProductsPage() {
         {/* Error State */}
         {error && (
           <div className="text-center py-12">
-            <p className="text-red-500 mb-4">Failed to load products</p>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <p className="text-red-500 mb-4">Fout bij het laden van producten</p>
+            <Button onClick={() => window.location.reload()}>Probeer Opnieuw</Button>
           </div>
         )}
 
@@ -160,7 +160,7 @@ export default function ProductsPage() {
               className="flex items-center gap-2"
             >
               <ChevronLeft className="w-4 h-4" />
-              Previous
+              Vorige
             </Button>
             
             <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export default function ProductsPage() {
               disabled={page >= data.pagination.totalPages}
               className="flex items-center gap-2"
             >
-              Next
+              Volgende
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>

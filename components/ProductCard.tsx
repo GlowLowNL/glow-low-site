@@ -76,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           
           {product.offers && product.offers.length > 1 && (
             <p className="text-xs text-muted-foreground">
-              {product.offers.length} stores • {product.priceRange}
+              {product.offers.length} winkels • {product.priceRange}
             </p>
           )}
         </div>
@@ -86,7 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="flex gap-2 w-full">
           <Button asChild size="sm" className="flex-1">
             <Link href={`/products/${product.id}`}>
-              Compare Prices
+              Vergelijk Prijzen
             </Link>
           </Button>
           

@@ -73,14 +73,14 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder="Search products, brands, or categories..."
+            placeholder="Zoek producten, merken of categorieën..."
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
             onKeyPress={handleKeyPress}
             className="pl-10"
           />
         </div>
-        <Button onClick={handleSearch}>Search</Button>
+        <Button onClick={handleSearch}>Zoeken</Button>
         <Button
           variant="outline"
           onClick={() => setShowFilters(!showFilters)}
@@ -99,11 +99,11 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
       {/* Active Filters */}
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-muted-foreground">Active filters:</span>
+          <span className="text-sm text-muted-foreground">Actieve filters:</span>
           
           {filters.category && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Category: {filters.category}
+              Categorie: {filters.category}
               <X 
                 className="w-3 h-3 cursor-pointer" 
                 onClick={() => setCategory(filters.category!)}
@@ -123,7 +123,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
           
           {(filters.priceMin || filters.priceMax) && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Price: €{filters.priceMin || 0} - €{filters.priceMax || '∞'}
+              Prijs: €{filters.priceMin || 0} - €{filters.priceMax || '∞'}
               <X 
                 className="w-3 h-3 cursor-pointer" 
                 onClick={() => setPriceRange()}
@@ -133,7 +133,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
           
           {filters.onSaleOnly && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              On Sale
+              In de Aanbieding
               <X 
                 className="w-3 h-3 cursor-pointer" 
                 onClick={toggleSaleOnly}
@@ -142,7 +142,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
           )}
           
           <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Clear all
+            Alles wissen
           </Button>
         </div>
       )}
@@ -157,7 +157,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
             {/* Categories */}
             {categories && (
               <div>
-                <h4 className="font-medium mb-3">Categories</h4>
+                <h4 className="font-medium mb-3">Categorieën</h4>
                 <div className="flex flex-wrap gap-2">
                   {categories.map(category => (
                     <Button
@@ -176,7 +176,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
             {/* Brands */}
             {brands && (
               <div>
-                <h4 className="font-medium mb-3">Brands</h4>
+                <h4 className="font-medium mb-3">Merken</h4>
                 <div className="flex flex-wrap gap-2">
                   {brands.map(brand => (
                     <Button
@@ -194,7 +194,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
 
             {/* Price Range */}
             <div>
-              <h4 className="font-medium mb-3">Price Range</h4>
+              <h4 className="font-medium mb-3">Prijsbereik</h4>
               <div className="flex gap-2 items-center">
                 <Input
                   type="number"
@@ -220,7 +220,7 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
                     size="sm"
                     onClick={() => setPriceRange(undefined, max)}
                   >
-                    Under €{max}
+                    Onder €{max}
                   </Button>
                 ))}
               </div>
@@ -228,21 +228,21 @@ export const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
 
             {/* Special Filters */}
             <div>
-              <h4 className="font-medium mb-3">Special Offers</h4>
+              <h4 className="font-medium mb-3">Speciale Aanbiedingen</h4>
               <div className="flex gap-2">
                 <Button
                   variant={filters.onSaleOnly ? "default" : "outline"}
                   size="sm"
                   onClick={toggleSaleOnly}
                 >
-                  On Sale Only
+                  Alleen Aanbiedingen
                 </Button>
                 <Button
                   variant={filters.inStockOnly ? "default" : "outline"}
                   size="sm"
                   onClick={() => onFiltersChange({ ...filters, inStockOnly: !filters.inStockOnly })}
                 >
-                  In Stock Only
+                  Alleen Op Voorraad
                 </Button>
               </div>
             </div>

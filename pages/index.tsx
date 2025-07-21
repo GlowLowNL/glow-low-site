@@ -25,10 +25,10 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>GlowLow – Find the Best Beauty Deals Across Europe</title>
+        <title>GlowLow – Dé cosmetica prijsvergelijker van Nederland</title>
         <meta
           name="description"
-          content="Compare beauty and skincare prices across European retailers. Find the lowest prices on makeup, skincare, and fragrance from brands like The Ordinary, Glossier, and more."
+          content="Vergelijk cosmetica prijzen van alle Nederlandse webshops. Vind de beste deals op make-up, huidverzorging en parfum van merken zoals The Ordinary, Glossier en meer."
         />
       </Head>
 
@@ -41,10 +41,10 @@ export default function Home() {
             </Link>
             <div className="flex gap-4">
               <Button variant="ghost" asChild>
-                <Link href="/products">Browse Products</Link>
+                <Link href="/products">Alle Producten</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/products?onSale=true">Deals</Link>
+                <Link href="/products?onSale=true">Aanbiedingen</Link>
               </Button>
             </div>
           </div>
@@ -56,9 +56,9 @@ export default function Home() {
             GlowLow
           </h1>
           <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-            Compare beauty prices across Europe's top retailers. 
+            Vergelijk cosmetica prijzen van alle Nederlandse webshops. 
             <br />
-            Find the best deals on skincare, makeup, and fragrance – all in one place.
+            Vind de beste deals op huidverzorging, make-up en parfum – alles op één plek.
           </p>
 
           {/* Quick Search */}
@@ -66,7 +66,7 @@ export default function Home() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
-                placeholder="Search for products or brands..."
+                placeholder="Zoek producten of merken..."
                 className="pl-12 py-3 text-lg rounded-full border-2 border-rose-200 focus:border-rose-400"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
@@ -81,13 +81,13 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button asChild size="lg" className="rounded-full">
               <Link href="/products">
-                Browse All Products
+                Alle Producten Bekijken
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="rounded-full">
               <Link href="/products?onSale=true">
                 <TrendingDown className="w-4 h-4 mr-2" />
-                View Sale Items
+                Bekijk Aanbiedingen
               </Link>
             </Button>
           </div>
@@ -100,9 +100,9 @@ export default function Home() {
               <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Search className="w-6 h-6 text-rose-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Smart Search</h3>
+              <h3 className="text-xl font-semibold mb-2">Slim Zoeken</h3>
               <p className="text-gray-600">
-                Find any beauty product instantly with our intelligent search across thousands of items.
+                Vind elk cosmetica product direct met onze slimme zoekmachine door duizenden artikelen.
               </p>
             </div>
             
@@ -110,9 +110,9 @@ export default function Home() {
               <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <TrendingDown className="w-6 h-6 text-rose-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Price Tracking</h3>
+              <h3 className="text-xl font-semibold mb-2">Prijsbeweging</h3>
               <p className="text-gray-600">
-                Monitor price changes and get alerts when your favorite products go on sale.
+                Volg prijsveranderingen en ontvang meldingen wanneer je favoriete producten in de aanbieding zijn.
               </p>
             </div>
             
@@ -120,9 +120,9 @@ export default function Home() {
               <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <ExternalLink className="w-6 h-6 text-rose-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Direct Purchase</h3>
+              <h3 className="text-xl font-semibold mb-2">Direct Kopen</h3>
               <p className="text-gray-600">
-                Click through directly to retailers to purchase at the best available price.
+                Klik direct door naar webshops om te kopen tegen de beste beschikbare prijs.
               </p>
             </div>
           </div>
@@ -132,10 +132,10 @@ export default function Home() {
         <section className="container mx-auto px-4 py-12">
           <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Get Early Access
+              Krijg Vroege Toegang
             </h2>
             <p className="text-gray-600 mb-6">
-              Be the first to know when we launch with full price comparison features.
+              Wees de eerste die het weet wanneer we live gaan met alle prijsvergelijkingsfuncties.
             </p>
 
             <form
@@ -160,7 +160,7 @@ export default function Home() {
             </form>
 
             <p className="mt-3 text-sm text-gray-500">
-              Geen spam. Eén mailtje zodra we live gaan.
+              Geen spam. Één e-mail zodra we live gaan.
             </p>
           </div>
         </section>
@@ -174,7 +174,7 @@ export default function Home() {
             <a href="mailto:info@glowlow.nl" className="underline">Contact</a>
             <br />
             <span className="italic mt-2 block">
-              Deze site gebruikt <strong>Awin</strong> affiliate-links.
+              Deze site gebruikt <strong>affiliate-links</strong> om commissie te verdienen.
             </span>
           </div>
         </footer>

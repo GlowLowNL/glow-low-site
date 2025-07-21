@@ -20,19 +20,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <div className="hidden md:flex items-center gap-6">
               <Link href="/products" className="text-muted-foreground hover:text-foreground transition-colors">
-                All Products
+                Alle Producten
               </Link>
               <Link href="/products?onSale=true" className="text-muted-foreground hover:text-foreground transition-colors">
-                Deals
+                Aanbiedingen
               </Link>
-              <Link href="/products?category=Skincare" className="text-muted-foreground hover:text-foreground transition-colors">
-                Skincare
+              <Link href="/products?category=Huidverzorging" className="text-muted-foreground hover:text-foreground transition-colors">
+                Huidverzorging
               </Link>
-              <Link href="/products?category=Makeup" className="text-muted-foreground hover:text-foreground transition-colors">
-                Makeup
+              <Link href="/products?category=Make-up" className="text-muted-foreground hover:text-foreground transition-colors">
+                Make-up
               </Link>
-              <Link href="/products?category=Fragrance" className="text-muted-foreground hover:text-foreground transition-colors">
-                Fragrance
+              <Link href="/products?category=Parfum" className="text-muted-foreground hover:text-foreground transition-colors">
+                Parfum
               </Link>
             </div>
             
@@ -40,13 +40,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/products" className="flex items-center gap-2">
                   <Search className="w-4 h-4" />
-                  <span className="hidden sm:inline">Search</span>
+                  <span className="hidden sm:inline">Zoeken</span>
                 </Link>
               </Button>
               
               <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Heart className="w-4 h-4" />
-                <span className="hidden sm:inline">Wishlist</span>
+                <span className="hidden sm:inline">Verlanglijst</span>
               </Button>
             </div>
           </div>
@@ -63,28 +63,28 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div>
               <h3 className="font-bold text-lg mb-4">GlowLow</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Europe's leading beauty price comparison platform. 
-                Find the best deals on skincare, makeup, and fragrance.
+                Nederland's toonaangevende cosmetica prijsvergelijker. 
+                Vind de beste deals op huidverzorging, make-up en parfum.
               </p>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Categories</h4>
+              <h4 className="font-semibold mb-4">Categorieën</h4>
               <div className="space-y-2 text-sm">
-                <Link href="/products?category=Skincare" className="block text-muted-foreground hover:text-foreground">
-                  Skincare
+                <Link href="/products?category=Huidverzorging" className="block text-muted-foreground hover:text-foreground">
+                  Huidverzorging
                 </Link>
-                <Link href="/products?category=Makeup" className="block text-muted-foreground hover:text-foreground">
-                  Makeup
+                <Link href="/products?category=Make-up" className="block text-muted-foreground hover:text-foreground">
+                  Make-up
                 </Link>
-                <Link href="/products?category=Fragrance" className="block text-muted-foreground hover:text-foreground">
-                  Fragrance
+                <Link href="/products?category=Parfum" className="block text-muted-foreground hover:text-foreground">
+                  Parfum
                 </Link>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Popular Brands</h4>
+              <h4 className="font-semibold mb-4">Populaire Merken</h4>
               <div className="space-y-2 text-sm">
                 <Link href="/products?brand=The+Ordinary" className="block text-muted-foreground hover:text-foreground">
                   The Ordinary
@@ -92,20 +92,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Link href="/products?brand=Glossier" className="block text-muted-foreground hover:text-foreground">
                   Glossier
                 </Link>
-                <Link href="/products?brand=Fenty+Beauty" className="block text-muted-foreground hover:text-foreground">
-                  Fenty Beauty
+                <Link href="/products?brand=Lancôme" className="block text-muted-foreground hover:text-foreground">
+                  Lancôme
                 </Link>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Company</h4>
+              <h4 className="font-semibold mb-4">Bedrijf</h4>
               <div className="space-y-2 text-sm">
                 <Link href="/disclaimer" className="block text-muted-foreground hover:text-foreground">
                   Disclaimer
                 </Link>
                 <Link href="/privacy" className="block text-muted-foreground hover:text-foreground">
-                  Privacy Policy
+                  Privacybeleid
                 </Link>
                 <a href="mailto:info@glowlow.nl" className="block text-muted-foreground hover:text-foreground">
                   Contact
@@ -116,10 +116,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           
           <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
             <p>
-              © {new Date().getFullYear()} GlowLow. All rights reserved.
+              © {new Date().getFullYear()} GlowLow. Alle rechten voorbehouden.
             </p>
             <p className="mt-2">
-              This site uses <strong>affiliate links</strong> to earn commission from purchases.
+              Deze site gebruikt <strong>affiliate links</strong> om commissie te verdienen op aankopen.
             </p>
           </div>
         </div>
