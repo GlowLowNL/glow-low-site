@@ -229,7 +229,7 @@ export default function ProductDetailPage() {
                 <div 
                   key={offer.id} 
                   className={`border rounded-lg p-4 transition-colors ${
-                    selectedRetailer === offer.retailerId ? 'border-primary bg-primary/5' : 'border-border'
+                    selectedRetailer === offer.retailerId ? 'border-primary bg-primary/5' : 'border-gray-200'
                   }`}
                 >
                   <div className="flex justify-between items-start">
