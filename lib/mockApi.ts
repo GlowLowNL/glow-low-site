@@ -12,7 +12,6 @@ import {
 } from '../types/product';
 import type { Product as BaseProduct } from '../types/product';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, CSV_PATH, ENABLE_CSV, BRAND_NORMALIZATION, CATEGORY_NORMALIZATION, CANONICAL_BRANDS, CANONICAL_CATEGORIES } from './config';
-import path from 'path';
 
 // Mock data
 const mockBrands: Brand[] = [
@@ -99,29 +98,30 @@ export const injectProducts = (items: ProductWithOffers[]) => {
   }
 };
 
-// CSV ingestion -------------------------------------------------------------
-let csvLoaded = false;
+// Reference dataset ingestion via public assets (no fs) ---------------------
 const referenceDataState = { loaded: false };
+let datasetsLoading: Promise<void> | null = null;
 
-async function loadReferenceDatasets() {
+async function loadReferenceDatasetsPublic() {
   if (referenceDataState.loaded) return;
-  if (typeof window !== 'undefined') return; // server only
-  try {
-    const datasetsDir = path.join(process.cwd(), 'public', 'datasets');
-    const { readdir, readFile, stat } = await import('fs/promises');
-    let entries: string[] = [];
-    try { entries = await readdir(datasetsDir); } catch { referenceDataState.loaded = true; return; }
-    const csvFiles = entries.filter(f => f.endsWith('.csv'));
-    // aggregation map key => product (without offers yet) + offers array temp
-    interface Agg { base: Omit<ProductWithOffers, 'offers'|'lowestPrice'|'highestPrice'|'priceRange'> & { offers: PriceOffer[] } }
-    const mapAgg = new Map<string, Agg>();
-    const norm = (v: string) => v.normalize('NFKD').replace(/[^\w\s]/g,'').trim().toLowerCase();
+  if (datasetsLoading) return datasetsLoading;
+  datasetsLoading = (async () => {
+    try {
+      // Discover dataset files via manifest.json (created in /public/datasets)
+      const base = (typeof window !== 'undefined') ? '' : (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '');
+      const manifestRes = await fetch(`${base}/datasets/manifest.json`).catch(() => null);
+      if (!manifestRes || !manifestRes.ok) { referenceDataState.loaded = true; return; }
+      const manifest: { files: string[] } = await manifestRes.json().catch(() => ({ files: [] }));
+      if (!manifest.files?.length) { referenceDataState.loaded = true; return; }
 
-    for (const file of csvFiles) {
-      const full = path.join(datasetsDir, file);
-      try {
-        const s = await stat(full); if (!s.isFile()) continue;
-        const raw = await readFile(full, 'utf8');
+      interface Agg { base: Omit<ProductWithOffers, 'offers'|'lowestPrice'|'highestPrice'|'priceRange'> & { offers: PriceOffer[] } }
+      const mapAgg = new Map<string, Agg>();
+      const norm = (v: string) => v.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/g,'').trim().toLowerCase();
+
+      for (const file of manifest.files) {
+        const csvRes = await fetch(`${base}/datasets/${file}`).catch(() => null);
+        if (!csvRes || !csvRes.ok) continue;
+        const raw = await csvRes.text();
         const lines = raw.split(/\r?\n/).filter(l => l.trim());
         if (lines.length < 2) continue;
         const header = lines[0].split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/).map(h => h.trim().toLowerCase());
@@ -142,7 +142,7 @@ async function loadReferenceDatasets() {
           categoryRaw = categoryRaw.replace(/_/g,' ').toLowerCase();
           if (categoryRaw === 'parfum' || categoryRaw === 'perfume') categoryRaw = 'Parfum';
           if (categoryRaw === 'make-up' || categoryRaw === 'make up') categoryRaw = 'Make-up';
-          if (categoryRaw === 'huidverzorging' || categoryRaw === 'skincare') categoryRaw = 'Huidverzorging';
+            if (categoryRaw === 'huidverzorging' || categoryRaw === 'skincare') categoryRaw = 'Huidverzorging';
           const category = categoryRaw.charAt(0).toUpperCase() + categoryRaw.slice(1);
           const subcategoryRaw = get('subcategory') || get('type') || '';
           const subcategory = subcategoryRaw ? subcategoryRaw.replace(/_/g,' ').replace(/\s+/g,' ').trim() : undefined;
@@ -170,7 +170,6 @@ async function loadReferenceDatasets() {
             agg = { base: { id: baseId, name, brand, category, subcategory, description, imageUrl, volume: size, sku: idBase, averageRating: isNaN(rating) ? undefined : rating, reviewCount: reviewCount || undefined, createdAt: now, updatedAt: now, offers: [] } };
             mapAgg.set(key, agg);
           } else {
-            // update rating heuristics (prefer higher review count average)
             if (!isNaN(rating)) {
               const existing = agg.base.averageRating || rating;
               const existingCount = agg.base.reviewCount || 0;
@@ -181,61 +180,44 @@ async function loadReferenceDatasets() {
                 agg.base.averageRating = rating;
               }
             }
-            // keep earliest createdAt, update updatedAt
             agg.base.updatedAt = now;
           }
           const offer: PriceOffer = { id: `${agg.base.id}-offer-${agg.base.offers.length+1}`, productId: agg.base.id, retailerId, retailerName: retailerId.charAt(0).toUpperCase()+retailerId.slice(1), price, originalPrice: wasPrice, currency: 'EUR', isOnSale: !!(wasPrice && wasPrice > price), saleEndDate: undefined, stockStatus: 'in_stock', productUrl, lastUpdated: now };
-          // avoid duplicate retailer offers with same price
           if (!agg.base.offers.some(o => o.retailerId === offer.retailerId && o.price === offer.price)) {
             agg.base.offers.push(offer);
           }
         }
-      } catch (e) {
-        devLog('Dataset parse error', file, e);
       }
-    }
-    if (mapAgg.size) {
-      const merged: ProductWithOffers[] = [];
-      for (const { base } of mapAgg.values()) {
-        const prices = base.offers.map(o => o.price).filter(p => p > 0);
-        const low = Math.min(...prices);
-        const high = Math.max(...prices);
-        const product: ProductWithOffers = { ...base, offers: base.offers, lowestPrice: low, highestPrice: high, priceRange: low === high ? `€${low.toFixed(2)}` : `€${low.toFixed(2)} - €${high.toFixed(2)}` };
-        // Voorzie ieder product direct van een gegenereerde (deterministische) historie (180 dagen) zodat charts meteen data hebben
-        generateDeterministicHistory(product.id, product.lowestPrice || (low || 40), 180);
-        merged.push(product);
+
+      if (mapAgg.size) {
+        const merged: ProductWithOffers[] = [];
+        for (const { base } of mapAgg.values()) {
+          const prices = base.offers.map(o => o.price).filter(p => p > 0);
+          const low = Math.min(...prices);
+          const high = Math.max(...prices);
+          const product: ProductWithOffers = { ...base, offers: base.offers, lowestPrice: low, highestPrice: high, priceRange: low === high ? `€${low.toFixed(2)}` : `€${low.toFixed(2)} - €${high.toFixed(2)}` };
+          // Voorzie ieder product direct van een gegenereerde (deterministische) historie (180 dagen) zodat charts meteen data hebben
+          generateDeterministicHistory(product.id, product.lowestPrice || (low || 40), 180);
+          merged.push(product);
+        }
+        injectProducts(merged);
+        devLog('Referentiedatasets (public) gemerged producten:', merged.length);
       }
-      injectProducts(merged);
       referenceDataState.loaded = true;
       syntheticGenerated.done = true;
-      devLog('Referentiedatasets gemerged producten:', merged.length);
-    } else {
-      referenceDataState.loaded = true;
+    } catch (e) {
+      devLog('Referentiedata (public) fout:', e);
+      referenceDataState.loaded = true; // avoid retry loop in production
     }
-  } catch (e) {
-    devLog('Referentiedata fout:', e);
-    referenceDataState.loaded = true;
-  }
+  })();
+  return datasetsLoading;
 }
+
+// CSV ingestion (legacy single CSV) ----------------------------------------
+let csvLoaded = false;
 
 async function loadCsvProductsOnce() {
   if (csvLoaded || !ENABLE_CSV) return;
-  // Prefer server-side loader using fs (never bundled client-side)
-  if (typeof window === 'undefined') {
-    try {
-      // @ts-ignore dynamic server-only import
-      const mod = await import('./server/csv-loader').catch(() => null as any);
-      if (mod && typeof mod.loadServerCsv === 'function') {
-        const added = await mod.loadServerCsv({ inject: injectProducts });
-        csvLoaded = true;
-        if (added) devLog(`CSV (server) geladen: ${added} producten.`);
-        return;
-      }
-    } catch (err) {
-      devLog('Server CSV loader fout, fallback naar public fetch:', err);
-    }
-  }
-  // Fallback: public fetch (works both server/client but no fs)
   try {
     const base = (typeof window !== 'undefined') ? '' : (process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}` || '');
     const url = `${base}/products.csv`;
@@ -284,12 +266,6 @@ async function loadCsvProductsOnce() {
   }
 }
 
-// Initial load CSV (if enabled)
-// if (ENABLE_CSV) { loadCsvProductsOnce(); }
-
-// Debug: show all products (mock + injected)
-// setTimeout(() => { devLog('Alle producten:', JSON.stringify(mockProducts, null, 2)); }, 1000);
-
 // API simulation functions -------------------------------------------------
 
 export const getProducts = async (
@@ -297,6 +273,8 @@ export const getProducts = async (
   page = 1,
   pageSize = DEFAULT_PAGE_SIZE
 ): Promise<PaginatedResponse<ProductWithOffers>> => {
+  // Load merged reference datasets (multi-offer) first
+  await loadReferenceDatasetsPublic();
   await loadCsvProductsOnce();
   generateSyntheticProducts();
   const size = Math.min(Math.max(pageSize, 1), MAX_PAGE_SIZE);
@@ -338,11 +316,13 @@ export const getProducts = async (
 };
 
 export const getProductById = async (id: string): Promise<ProductWithOffers | undefined> => {
+  await loadReferenceDatasetsPublic();
   await loadCsvProductsOnce();
   return mockProducts.find(p => p.id === id);
 };
 
 export const getPriceHistory = async (productId: string, days = 30): Promise<PriceHistory> => {
+  await loadReferenceDatasetsPublic();
   await loadCsvProductsOnce();
   generateSyntheticProducts();
   const product = mockProducts.find(p => p.id === productId);
@@ -353,6 +333,7 @@ export const getPriceHistory = async (productId: string, days = 30): Promise<Pri
 };
 
 export const getCategories = async (): Promise<Category[]> => {
+  await loadReferenceDatasetsPublic();
   await loadCsvProductsOnce();
   // Dynamisch afleiden uit producten
   const mapCat: Record<string, { cat: Category; subs: Record<string, Category> }> = {};
@@ -375,6 +356,7 @@ export const getCategories = async (): Promise<Category[]> => {
 };
 
 export const getBrands = async (): Promise<Brand[]> => {
+  await loadReferenceDatasetsPublic();
   await loadCsvProductsOnce();
   return mockBrands;
 };
@@ -470,16 +452,16 @@ function generateSyntheticProducts(targetTotal = 80) {
         offers.push({
           id: `${id}-offer-${i+1}`,
           productId: id,
-            retailerId: r.id,
-            retailerName: r.name,
-            price,
-            originalPrice,
-            currency: 'EUR',
-            isOnSale,
-            saleEndDate: isOnSale ? new Date(Date.now() + (5 + Math.random()*20) * 86400000).toISOString() : undefined,
-            stockStatus: 'in_stock',
-            productUrl: `${r.url}/product/${id}`,
-            lastUpdated: updatedAt
+          retailerId: r.id,
+          retailerName: r.name,
+          price,
+          originalPrice,
+          currency: 'EUR',
+          isOnSale,
+          saleEndDate: isOnSale ? new Date(Date.now() + (5 + Math.random()*20) * 86400000).toISOString() : undefined,
+          stockStatus: 'in_stock',
+          productUrl: `${r.url}/product/${id}`,
+          lastUpdated: updatedAt
         });
       }
       const lowestPrice = Math.min(...offers.map(o => o.price));
