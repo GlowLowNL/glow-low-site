@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) {
     return { title: "Product niet gevonden" };
   }
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || 'https://glowlow.nl';
   const url = `${siteUrl}/product/${product.id}`;
   return {
     title: `${product.name} by ${product.brand} | GlowLow`,
@@ -43,7 +43,7 @@ export default async function Page({ params }: Props) {
   if (!product) {
     notFound();
   }
-  const canonical = (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '') + `/product/${product.id}`;
+  const canonical = (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || 'https://glowlow.nl') + `/product/${product.id}`;
   return (
     <>
       <div className="container mx-auto px-4 pt-6">
@@ -85,8 +85,8 @@ export default async function Page({ params }: Props) {
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
           itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '') + '/' },
-            { '@type': 'ListItem', position: 2, name: product.category, item: (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '') + `/category/${product.category.toLowerCase().replace(/\s+/g,'-')}` },
+            { '@type': 'ListItem', position: 1, name: 'Home', item: (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || 'https://glowlow.nl') + '/' },
+            { '@type': 'ListItem', position: 2, name: product.category, item: (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || 'https://glowlow.nl') + `/category/${product.category.toLowerCase().replace(/\s+/g,'-')}` },
             { '@type': 'ListItem', position: 3, name: product.name, item: canonical }
           ]
         }) }}

@@ -9,7 +9,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
-  const fallback = '/fallback-product.png';
   return (
     <Link href={`/product/${product.id}`} className={cn("group block", className)}>
       <div className="relative overflow-hidden rounded-2xl bg-card/70 backdrop-blur border transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
@@ -21,12 +20,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             loading="lazy"
-            onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement;
-              if (target.src !== fallback) {
-                target.src = fallback;
-              }
-            }}
+            placeholder="empty"
           />
           <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/30 via-transparent to-transparent" />
         </div>

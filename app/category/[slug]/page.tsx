@@ -27,7 +27,7 @@ function categoryMeta(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const meta = categoryMeta(params.slug);
-  const site = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '';
+  const site = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || 'https://glowlow.nl';
   const url = `${site}/category/${params.slug}`;
   return { title: meta.title, description: meta.description, alternates: { canonical: url }, openGraph: { title: meta.title, description: meta.description, url } };
 }
@@ -40,7 +40,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const maxPrice = searchParams.max ? Number(searchParams.max) : undefined;
   const sortBy = (searchParams.sort as any) || undefined;
   const productsResponse = await getProducts({ category: mapSlugToCategory(params.slug), brand: brands, minPrice, maxPrice, sortBy }, page, 24);
-  const site = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '';
+  const site = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || 'https://glowlow.nl';
   const canonical = `${site}/category/${params.slug}` + (page > 1 ? `?page=${page}` : '');
   const breadcrumbLd = {
     '@context': 'https://schema.org',
