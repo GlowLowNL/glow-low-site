@@ -76,3 +76,5 @@ export function PriceHistoryChart({ productId }: PriceHistoryChartProps) {
     </div>
   );
 }
+
+export default PriceHistoryChart;

@@ -10,6 +10,7 @@ import {
   SearchFilters,
   PaginatedResponse 
 } from '../types/product';
+import type { Product as BaseProduct } from '../types/product';
 
 // Mock data
 const mockBrands: Brand[] = [
@@ -178,7 +179,98 @@ const mockProducts: ProductWithOffers[] = [
     highestPrice: 12.49,
     priceRange: '€11.99 - €12.49',
   },
+  {
+    id: 'csv-1090394',
+    name: 'My Way Eau De Parfum (Navulbaar)',
+    brand: 'ARMANI',
+    category: 'Parfum',
+    subcategory: 'Damesparfum',
+    description: "Premium damesparfum met bloemige noten.",
+    imageUrl: 'https://www.iciparisxl.nl/medias/prd-front-1090394-201x201.jpg?context=bWFzdGVyfHByZC1pbWFnZXN8MjU3Mzh8aW1hZ2UvanBlZ3xhRFk0TDJobE1pOHhNVEEzT0RVeU1qWXpOREkzTUM5d2NtUXRabkp2Ym5RdE1UQTVNRE01TkY4eU1ERjRNakF4TG1wd1p3fGVmOTk1MDhkYmEzNWZiM2NhMDJhMzYwMDAxNmU0ZGJjMTc1NmRlMjhkYWIwNDNmZDI3ZThkNDM3MmFiYzNlODc',
+    volume: '30ml',
+    sku: 'BP_1090394',
+    averageRating: 4.93,
+    reviewCount: 670,
+    createdAt: '2024-06-01T00:00:00Z',
+    updatedAt: '2024-07-01T00:00:00Z',
+    offers: [
+      {
+        id: 'csv-1090394-offer-1',
+        productId: 'csv-1090394',
+        retailerId: 'iciparis',
+        retailerName: 'ICI PARIS XL',
+        price: 60.99,
+        originalPrice: 90.00,
+        currency: 'EUR',
+        isOnSale: true,
+        saleEndDate: '2024-08-31T23:59:59Z',
+        stockStatus: 'in_stock',
+        productUrl: 'https://www.iciparisxl.nl/armani/my-way/eau-de-parfum-navulbaar-damesparfum/p/BP_1090394',
+        lastUpdated: '2024-07-21T08:00:00Z'
+      }
+    ],
+    lowestPrice: 60.99,
+    highestPrice: 60.99,
+    priceRange: '€60.99'
+  },
+  {
+    id: 'csv-1173052',
+    name: 'FAME Eau de Parfum',
+    brand: 'RABANNE',
+    category: 'Parfum',
+    subcategory: 'Damesparfum',
+    description: 'Sprankelende moderne geur met een iconische fles.',
+    imageUrl: 'https://www.iciparisxl.nl/medias/prd-front-1173052-201x201.jpg?context=bWFzdGVyfHByZC1pbWFnZXN8MTE3MjN8aW1hZ2UvanBlZ3xhREl3TDJnMk9TOHhNVFV4TkRBeE9ETTVPREl6T0M5d2NtUXRabkp2Ym5RdE1URTNNekExTWw4eU1ERjRNakF4TG1wd1p3fDEwNzhjZjg1YTY3ZDJlMjE3NTUxYzE1NmE4MjUyOWM0YTQ5NjVhOWI5YjU2ZGE5ZWE4N2M4YzA4NmM2NDA2OGE',
+    volume: '30ml',
+    sku: 'BP_1173052',
+    averageRating: 4.94,
+    reviewCount: 625,
+    createdAt: '2024-06-02T00:00:00Z',
+    updatedAt: '2024-07-01T00:00:00Z',
+    offers: [
+      {
+        id: 'csv-1173052-offer-1',
+        productId: 'csv-1173052',
+        retailerId: 'iciparis',
+        retailerName: 'ICI PARIS XL',
+        price: 59.52,
+        originalPrice: 74.40,
+        currency: 'EUR',
+        isOnSale: true,
+        saleEndDate: '2024-08-31T23:59:59Z',
+        stockStatus: 'in_stock',
+        productUrl: 'https://www.iciparisxl.nl/rabanne/fame/eau-de-parfum/p/BP_1173052',
+        lastUpdated: '2024-07-21T08:00:00Z'
+      }
+    ],
+    lowestPrice: 59.52,
+    highestPrice: 59.52,
+    priceRange: '€59.52'
+  }
 ];
+
+// Lightweight conditional logger
+const devLog = (...args: any[]) => {
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+};
+
+// Helper to inject additional products at runtime (e.g. parsed from CSV)
+export const injectProducts = (items: ProductWithOffers[]) => {
+  for (const p of items) {
+    if (!mockProducts.some(mp => mp.id === p.id)) {
+      mockProducts.push(p);
+    }
+  }
+};
+
+// Utility to optionally simulate latency (disabled in production)
+const simulateDelay = async (ms: number) => {
+  if (process.env.NODE_ENV === 'production') return; // skip in production build/runtime
+  return new Promise(r => setTimeout(r, ms));
+};
 
 // --- API Simulation Functions ---
 
@@ -191,10 +283,10 @@ export const getProducts = async (
   page = 1,
   pageSize = 10
 ): Promise<PaginatedResponse<ProductWithOffers>> => {
-  console.log('Fetching products with filters:', filters);
+  devLog('Fetching products with filters:', filters);
 
   // Simulate async delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await simulateDelay(200);
 
   let filteredProducts = [...mockProducts];
 
@@ -254,9 +346,9 @@ export const getProducts = async (
  */
 export const getProductById = async (id: string): Promise<ProductWithOffers | undefined> => {
   // Simulate async delay
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await simulateDelay(120);
   const product = mockProducts.find(p => p.id === id);
-  console.log(`Fetching product by id: ${id}`, product);
+  devLog(`Fetching product by id: ${id}`, product);
   return product;
 };
 
@@ -265,7 +357,7 @@ export const getProductById = async (id: string): Promise<ProductWithOffers | un
  */
 export const getPriceHistory = async (productId: string, days = 30): Promise<PriceHistory> => {
   // Simulate async delay
-  await new Promise(resolve => setTimeout(resolve, 400));
+  await simulateDelay(150);
   
   const history: { date: string; price: number }[] = [];
   const today = new Date();
@@ -285,7 +377,7 @@ export const getPriceHistory = async (productId: string, days = 30): Promise<Pri
     });
   }
 
-  console.log(`Fetching price history for product: ${productId} (last ${days} days)`);
+  devLog(`Fetching price history for product: ${productId} (last ${days} days)`);
 
   return {
     productId,
@@ -297,14 +389,14 @@ export const getPriceHistory = async (productId: string, days = 30): Promise<Pri
  * Fetches all available categories.
  */
 export const getCategories = async (): Promise<Category[]> => {
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await simulateDelay(50);
   return mockCategories;
-}
+};
 
 /**
  * Fetches all available brands.
  */
 export const getBrands = async (): Promise<Brand[]> => {
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await simulateDelay(50);
   return mockBrands;
-}
+};

@@ -2,8 +2,28 @@
 
 import { ProductWithOffers } from "@/types/product";
 import Image from "next/image";
-import { OffersList } from "./offers-list";
-import { PriceHistoryChart } from "./price-history-chart";
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+
+// Dynamic imports (code splitting)
+const OffersList = dynamic(
+  () => import("./offers-list").then((m) => m.OffersList),
+  {
+    loading: () => (
+      <div className="h-32 rounded-xl border bg-muted/40 animate-pulse" />
+    ),
+    ssr: true,
+  }
+);
+const PriceHistoryChart = dynamic(
+  () => import("./price-history-chart").then((m) => m.PriceHistoryChart),
+  {
+    loading: () => (
+      <div className="h-72 rounded-xl border bg-muted/40 animate-pulse" />
+    ),
+    ssr: false, // chart can be client only
+  }
+);
 
 interface ProductPageProps {
   product: ProductWithOffers;
@@ -35,7 +55,7 @@ export function ProductPage({ product }: ProductPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-        {/* Product Image Gallery */}
+        {/* Product Image */}
         <div className="relative aspect-square w-full overflow-hidden rounded-3xl border bg-gradient-to-br from-muted to-muted/40">
           <Image
             src={product.imageUrl}
@@ -48,7 +68,7 @@ export function ProductPage({ product }: ProductPageProps) {
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-transparent" />
         </div>
 
-        {/* Product Details */}
+        {/* Details */}
         <div className="max-w-xl">
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
             {product.brand}
@@ -62,7 +82,20 @@ export function ProductPage({ product }: ProductPageProps) {
 
           <div className="mb-10">
             <h2 className="mb-4 text-lg font-semibold">Verkooppunten</h2>
-            <OffersList offers={product.offers} />
+            <Suspense
+              fallback={
+                <div className="space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-16 rounded-xl border bg-muted/40 animate-pulse"
+                    />
+                  ))}
+                </div>
+              }
+            >
+              <OffersList offers={product.offers} />
+            </Suspense>
           </div>
 
           <div className="mb-10">
