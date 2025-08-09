@@ -270,134 +270,60 @@ export const injectProducts = (items: ProductWithOffers[]) => {
 // CSV ingestion -------------------------------------------------------------
 let csvLoaded = false;
 async function loadCsvProductsOnce() {
-  // Temporary no-op in production build to avoid bundling Node fs in client chunks.
-  // Re-enable with a server-only module (e.g. route handler) later.
-  if (csvLoaded) return;
-  if (!ENABLE_CSV) { csvLoaded = true; return; }
-  // Only attempt on server runtime and never during edge/client bundling.
-  if (typeof window !== 'undefined') { csvLoaded = true; return; }
-  if (process.env.NEXT_RUNTIME === 'edge') { csvLoaded = true; return; }
+  if (csvLoaded || !ENABLE_CSV) return;
   try {
-    // CSV ingestion disabled to fix build error: remove any fs imports.
-    // TODO: Move CSV parsing to a server action or route (app/api/import/route.ts) using fs there.
-  } catch (err) {
-    devLog('CSV load skipped/error (stub):', err);
+    // Fetch CSV from public folder (no fs usage) - works in any runtime
+    const res = await fetch((globalThis as any).location ? '/products.csv' : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/products.csv`).catch(() => null);
+    if (!res || !res.ok) { csvLoaded = true; return; }
+    const raw = await res.text();
+    const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (lines.length < 2) { csvLoaded = true; return; }
+    const header = lines[0].split(/[,;]\s*/).map(h => h.trim());
+    const out: ProductWithOffers[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(/[,;]\s*/);
+      if (cols.length !== header.length) continue;
+      const row: Record<string, string> = {};
+      header.forEach((h, idx) => (row[h.toLowerCase()] = cols[idx]));
+      if (!row.name && !row.title) continue;
+      const rawBrand = (row.brand || row.merk || '').trim();
+      const brandNormKey = rawBrand.toUpperCase();
+      const brand = (BRAND_NORMALIZATION[brandNormKey] || rawBrand || 'Onbekend merk') as string;
+      const rawCategory = (row.category || row.categorie || '').trim();
+      const catNormKey = rawCategory.toUpperCase();
+      const category = (CATEGORY_NORMALIZATION[catNormKey] || rawCategory || 'Parfum') as string;
+      if (brand && !CANONICAL_BRANDS.includes(brand as any)) continue;
+      if (category && !CANONICAL_CATEGORIES.includes(category as any)) continue;
+      const id = row.id || row.sku || `csv-${i}`;
+      if (mockProducts.some(p => p.id === id)) continue;
+      const name = row.name || row.title || 'Onbekend product';
+      const subcategory = row.subcategory || row.subcategorie || undefined;
+      const description = row.description || row.omschrijving || '';
+      const imageUrl = row.imageurl || row.image || row.afbeelding || 'https://via.placeholder.com/400x400.png?text=Product';
+      const volume = row.volume || row.inhoud || undefined;
+      const sku = row.sku || row.code || undefined;
+      const now = new Date().toISOString();
+      const priceNum = parseFloat(row.price || row.prijs || '');
+      const price = !isNaN(priceNum) && priceNum > 0 ? priceNum : undefined;
+      const currency = row.currency || 'EUR';
+      const offers: PriceOffer[] = price ? [{ id: `${id}-offer-1`, productId: id, retailerId: 'csvimport', retailerName: 'CSV Retailer', price, currency, isOnSale: false, stockStatus: 'in_stock', productUrl: row.url || row.link || '#', lastUpdated: now }] : [];
+      const lowestPrice = offers.length ? offers[0].price : undefined;
+      out.push({ id, name, brand, category, subcategory, description, imageUrl, volume, sku, createdAt: now, updatedAt: now, offers, lowestPrice, highestPrice: lowestPrice, priceRange: lowestPrice ? `€${lowestPrice.toFixed(2)}` : undefined });
+    }
+    if (out.length) { injectProducts(out); devLog(`CSV (public) geladen: ${out.length} producten.`); }
+  } catch (e) {
+    devLog('CSV fetch fout:', e);
   } finally {
     csvLoaded = true;
   }
 }
 
-// Utility to optionally simulate latency (disabled in production)
-const simulateDelay = async (ms: number) => {
-  if (process.env.NODE_ENV === 'production') return; // skip in production build/runtime
-  return new Promise(r => setTimeout(r, ms));
-};
+// Initial load CSV (if enabled)
+// if (ENABLE_CSV) { loadCsvProductsOnce(); }
 
-// --- API Simulation Functions ---
+// Debug: show all products (mock + injected)
+// setTimeout(() => { devLog('Alle producten:', JSON.stringify(mockProducts, null, 2)); }, 1000);
 
-/**
- * Fetches a paginated list of all products.
- * In a real app, this would be an async API call.
- */
-export const getProducts = async (
-  filters: SearchFilters = {},
-  page = 1,
-  pageSize = DEFAULT_PAGE_SIZE
-): Promise<PaginatedResponse<ProductWithOffers>> => {
-  await loadCsvProductsOnce();
-  devLog('Fetching products with filters:', filters);
-  await simulateDelay(200);
-  const size = Math.min(Math.max(pageSize, 1), MAX_PAGE_SIZE);
-  let filteredProducts = [...mockProducts];
-  if (filters.query) {
-    const query = filters.query.toLowerCase();
-    filteredProducts = filteredProducts.filter(p => p.name.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query) || (p.description?.toLowerCase().includes(query) ?? false));
-  }
-  if (filters.category) {
-    filteredProducts = filteredProducts.filter(p => p.category === filters.category);
-  }
-  if (filters.brand?.length) {
-    filteredProducts = filteredProducts.filter(p => filters.brand!.includes(p.brand));
-  }
-  if (filters.minPrice != null || filters.maxPrice != null) {
-    filteredProducts = filteredProducts.filter(p => {
-      const lp = p.lowestPrice ?? Infinity;
-      if (filters.minPrice != null && lp < filters.minPrice) return false;
-      if (filters.maxPrice != null && lp > filters.maxPrice) return false;
-      return true;
-    });
-  }
-  if (filters.sortBy) {
-    switch (filters.sortBy) {
-      case 'price_asc': filteredProducts.sort((a, b) => (a.lowestPrice ?? Infinity) - (b.lowestPrice ?? Infinity)); break;
-      case 'price_desc': filteredProducts.sort((a, b) => (b.lowestPrice ?? -Infinity) - (a.lowestPrice ?? -Infinity)); break;
-      case 'rating_desc': filteredProducts.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0)); break;
-      case 'newest': filteredProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); break;
-    }
-  }
-  const total = filteredProducts.length;
-  const totalPages = Math.ceil(total / size);
-  const paginatedData = filteredProducts.slice((page - 1) * size, page * size);
-  return { data: paginatedData, page, pageSize: size, total, totalPages };
-};
+// API simulation functions -------------------------------------------------
 
-/**
- * Fetches a single product by its ID.
- */
-export const getProductById = async (id: string): Promise<ProductWithOffers | undefined> => {
-  await loadCsvProductsOnce();
-  // Simulate async delay
-  await simulateDelay(120);
-  const product = mockProducts.find(p => p.id === id);
-  devLog(`Fetching product by id: ${id}`, product);
-  return product;
-};
-
-/**
- * Fetches the price history for a product.
- */
-export const getPriceHistory = async (productId: string, days = 30): Promise<PriceHistory> => {
-  // Simulate async delay
-  await simulateDelay(150);
-  
-  const history: { date: string; price: number }[] = [];
-  const today = new Date();
-  const basePrice = mockProducts.find(p => p.id === productId)?.lowestPrice || 50;
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    
-    // Simulate price fluctuation
-    const fluctuation = (Math.random() - 0.5) * (basePrice * 0.1);
-    const price = parseFloat((basePrice + fluctuation).toFixed(2));
-    
-    history.push({
-      date: date.toISOString().split('T')[0],
-      price,
-    });
-  }
-
-  devLog(`Fetching price history for product: ${productId} (last ${days} days)`);
-
-  return {
-    productId,
-    history,
-  };
-};
-
-/**
- * Fetches all available categories.
- */
-export const getCategories = async (): Promise<Category[]> => {
-  await simulateDelay(50);
-  return mockCategories;
-};
-
-/**
- * Fetches all available brands.
- */
-export const getBrands = async (): Promise<Brand[]> => {
-  await simulateDelay(50);
-  return mockBrands;
-};
+// ...existing code...

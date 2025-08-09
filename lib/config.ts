@@ -1,8 +1,9 @@
 // Central configuration for Glow-Low
 export const DEFAULT_PAGE_SIZE = parseInt(process.env.NEXT_PUBLIC_PAGE_SIZE || '10', 10);
 export const MAX_PAGE_SIZE = 100;
-export const CSV_PATH = process.env.CSV_PATH || `${process.cwd()}/data/products.csv`;
+export const CSV_PATH = process.env.CSV_PATH || `${process.cwd()}/public/products.csv`;
 export const ENABLE_CSV = (process.env.ENABLE_CSV || 'true') === 'true';
+export const CSV_FETCH_URL = '/products.csv';
 export const LOG_LEVEL = process.env.LOG_LEVEL || 'debug';
 
 export const CANONICAL_CATEGORIES = [
