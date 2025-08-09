@@ -349,6 +349,7 @@ export const getProducts = async (
   pageSize = DEFAULT_PAGE_SIZE
 ): Promise<PaginatedResponse<ProductWithOffers>> => {
   await loadCsvProductsOnce();
+  generateSyntheticProducts();
   const size = Math.min(Math.max(pageSize, 1), MAX_PAGE_SIZE);
   let filteredProducts = [...mockProducts];
   if (filters.query) {
@@ -394,17 +395,12 @@ export const getProductById = async (id: string): Promise<ProductWithOffers | un
 
 export const getPriceHistory = async (productId: string, days = 30): Promise<PriceHistory> => {
   await loadCsvProductsOnce();
-  const history: { date: string; price: number }[] = [];
-  const today = new Date();
-  const basePrice = mockProducts.find(p => p.id === productId)?.lowestPrice || 50;
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    const fluctuation = (Math.random() - 0.5) * (basePrice * 0.1);
-    const price = parseFloat((basePrice + fluctuation).toFixed(2));
-    history.push({ date: date.toISOString().split('T')[0], price });
-  }
-  return { productId, history };
+  generateSyntheticProducts();
+  const product = mockProducts.find(p => p.id === productId);
+  const base = product?.lowestPrice || 40;
+  const fullHistory = generateDeterministicHistory(productId, base);
+  const slice = fullHistory.slice(-days);
+  return { productId, history: slice };
 };
 
 export const getCategories = async (): Promise<Category[]> => {
@@ -416,3 +412,135 @@ export const getBrands = async (): Promise<Brand[]> => {
   await loadCsvProductsOnce();
   return mockBrands;
 };
+
+// Deterministic price history store
+const priceHistoryMap = new Map<string, { date: string; price: number }[]>();
+
+// Simple deterministic PRNG based on product id
+function seedRandom(seed: string) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(31, h) + seed.charCodeAt(i) | 0;
+  return () => {
+    h = Math.imul(48271, h) + 0x7fffffff & 0x7fffffff;
+    return (h & 0xfffffff) / 0xfffffff;
+  };
+}
+
+function generateDeterministicHistory(productId: string, base: number, days = 120) {
+  if (priceHistoryMap.has(productId)) return priceHistoryMap.get(productId)!;
+  const rand = seedRandom(productId);
+  const today = new Date();
+  const history: { date: string; price: number }[] = [];
+  let trend = base * (0.85 + rand() * 0.3); // start within ±15%
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    // weekly pattern (weekend dips)
+    const weekday = d.getDay();
+    const weekendFactor = (weekday === 0 || weekday === 6) ? -0.012 : 0.006;
+    const noise = (rand() - 0.5) * base * 0.015; // ~1.5%
+    trend = trend * (1 + weekendFactor) + noise;
+    const price = Math.max(2, parseFloat(trend.toFixed(2)));
+    history.push({ date: d.toISOString().split('T')[0], price });
+  }
+  priceHistoryMap.set(productId, history);
+  return history;
+}
+
+// Synthetic product generation ------------------------------------------------
+const syntheticGenerated = { done: false };
+function generateSyntheticProducts(targetTotal = 80) {
+  if (syntheticGenerated.done) return;
+  const current = mockProducts.length;
+  if (current >= targetTotal) { syntheticGenerated.done = true; return; }
+
+  const brandPools = {
+    'Huidverzorging': ['The Ordinary', 'CeraVe', 'Clinique', 'Estée Lauder', 'Garnier', 'NIVEA'],
+    'Make-up': ['Maybelline', "L'Oréal Paris", 'Lancôme', 'Estée Lauder'],
+    'Parfum': ['Lancôme', 'Yves Saint Laurent', 'Estée Lauder']
+  } as Record<string, string[]>;
+
+  const baseCatalog: Array<{ baseName: string; category: string; subcategory?: string; min: number; max: number; imageQuery: string; }> = [
+    { baseName: 'Hydrating Facial Cleanser', category: 'Huidverzorging', subcategory: 'Reiniging', min: 7, max: 16, imageQuery: 'skincare,cleanser' },
+    { baseName: 'Vitamin C Serum 15%', category: 'Huidverzorging', subcategory: 'Serums', min: 9, max: 28, imageQuery: 'skincare,serum' },
+    { baseName: 'Retinol Night Treatment', category: 'Huidverzorging', subcategory: 'Anti-Aging', min: 12, max: 42, imageQuery: 'retinol,cosmetics' },
+    { baseName: 'Mineral Sunscreen SPF50', category: 'Huidverzorging', subcategory: 'Zonnebescherming', min: 10, max: 24, imageQuery: 'sunscreen' },
+    { baseName: 'Lightweight Gel Moisturizer', category: 'Huidverzorging', subcategory: 'Vochtinbrengende Crème', min: 8, max: 30, imageQuery: 'moisturizer' },
+    { baseName: 'Long Wear Foundation', category: 'Make-up', subcategory: 'Foundation', min: 14, max: 50, imageQuery: 'foundation,makeup' },
+    { baseName: 'Volumizing Mascara', category: 'Make-up', subcategory: 'Mascara', min: 8, max: 34, imageQuery: 'mascara' },
+    { baseName: 'Matte Liquid Lipstick', category: 'Make-up', subcategory: 'Lipstick', min: 7, max: 32, imageQuery: 'lipstick' },
+    { baseName: 'Ultra Black Eyeliner', category: 'Make-up', subcategory: 'Oogschaduw', min: 6, max: 24, imageQuery: 'eyeliner' },
+    { baseName: 'Eau de Parfum 50ml', category: 'Parfum', subcategory: 'Damesparfum', min: 35, max: 110, imageQuery: 'perfume,bottle' },
+    { baseName: 'Eau de Toilette 100ml', category: 'Parfum', subcategory: 'Herenparfum', min: 30, max: 90, imageQuery: 'cologne' },
+  ];
+
+  const retailers = mockRetailers;
+  let idCounter = 1000;
+
+  while (mockProducts.length < targetTotal) {
+    for (const base of baseCatalog) {
+      if (mockProducts.length >= targetTotal) break;
+      const brandList = brandPools[base.category];
+      const brand = brandList[Math.floor(Math.random() * brandList.length)];
+      const id = `syn-${idCounter++}`;
+      const createdAt = new Date(Date.now() - Math.floor(Math.random() * 60) * 86400000).toISOString();
+      const updatedAt = new Date().toISOString();
+      const basePrice = parseFloat((base.min + Math.random() * (base.max - base.min)).toFixed(2));
+      const discountFactor = Math.random();
+      const offers: PriceOffer[] = [];
+      // create 2-4 offers
+      const offerCount = 2 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < offerCount; i++) {
+        const r = retailers[(Math.floor(Math.random() * retailers.length))];
+        const priceVariation = (Math.random() - 0.5) * basePrice * 0.12; // ±12%
+        let price = parseFloat(Math.max(2, basePrice + priceVariation).toFixed(2));
+        let originalPrice: number | undefined;
+        let isOnSale = false;
+        if (discountFactor > 0.65 && i === 0) { // one main discounted retailer
+          originalPrice = parseFloat((price * (1 + 0.25 + Math.random() * 0.25)).toFixed(2));
+          isOnSale = true;
+          price = parseFloat((originalPrice * (0.65 + Math.random() * 0.2)).toFixed(2));
+        }
+        offers.push({
+          id: `${id}-offer-${i+1}`,
+          productId: id,
+            retailerId: r.id,
+            retailerName: r.name,
+            price,
+            originalPrice,
+            currency: 'EUR',
+            isOnSale,
+            saleEndDate: isOnSale ? new Date(Date.now() + (5 + Math.random()*20) * 86400000).toISOString() : undefined,
+            stockStatus: 'in_stock',
+            productUrl: `${r.url}/product/${id}`,
+            lastUpdated: updatedAt
+        });
+      }
+      const lowestPrice = Math.min(...offers.map(o => o.price));
+      const highestPrice = Math.max(...offers.map(o => o.price));
+      const priceRange = lowestPrice === highestPrice ? `€${lowestPrice.toFixed(2)}` : `€${lowestPrice.toFixed(2)} - €${highestPrice.toFixed(2)}`;
+      const imageUrl = `https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&h=600&q=75&sig=${idCounter}`;
+      mockProducts.push({
+        id,
+        name: `${brand} ${base.baseName}`,
+        brand,
+        category: base.category,
+        subcategory: base.subcategory,
+        description: `${base.baseName} van ${brand}. Vergelijk prijzen en bespaar.`,
+        imageUrl,
+        volume: base.subcategory?.includes('Parfum') ? '50ml' : undefined,
+        sku: `${brand.slice(0,3).toUpperCase()}-${idCounter}`,
+        averageRating: parseFloat((3.8 + Math.random()*1.2).toFixed(2)),
+        reviewCount: 50 + Math.floor(Math.random()*1500),
+        createdAt,
+        updatedAt,
+        offers,
+        lowestPrice,
+        highestPrice,
+        priceRange
+      });
+      generateDeterministicHistory(id, lowestPrice);
+    }
+  }
+  syntheticGenerated.done = true;
+}
