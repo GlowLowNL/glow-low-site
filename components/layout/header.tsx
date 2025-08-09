@@ -1,3 +1,4 @@
+"use client";
 import { Search } from "../home/search";
 import Link from "next/link";
 import { useState } from 'react';
