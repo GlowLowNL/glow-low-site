@@ -271,9 +271,26 @@ export const injectProducts = (items: ProductWithOffers[]) => {
 let csvLoaded = false;
 async function loadCsvProductsOnce() {
   if (csvLoaded || !ENABLE_CSV) return;
+  // Prefer server-side loader using fs (never bundled client-side)
+  if (typeof window === 'undefined') {
+    try {
+      // @ts-ignore dynamic server-only import
+      const mod = await import('./server/csv-loader').catch(() => null as any);
+      if (mod && typeof mod.loadServerCsv === 'function') {
+        const added = await mod.loadServerCsv({ inject: injectProducts });
+        csvLoaded = true;
+        if (added) devLog(`CSV (server) geladen: ${added} producten.`);
+        return;
+      }
+    } catch (err) {
+      devLog('Server CSV loader fout, fallback naar public fetch:', err);
+    }
+  }
+  // Fallback: public fetch (works both server/client but no fs)
   try {
-    // Fetch CSV from public folder (no fs usage) - works in any runtime
-    const res = await fetch((globalThis as any).location ? '/products.csv' : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/products.csv`).catch(() => null);
+    const base = (typeof window !== 'undefined') ? '' : (process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}` || '');
+    const url = `${base}/products.csv`;
+    const res = await fetch(url).catch(() => null);
     if (!res || !res.ok) { csvLoaded = true; return; }
     const raw = await res.text();
     const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
@@ -310,7 +327,7 @@ async function loadCsvProductsOnce() {
       const lowestPrice = offers.length ? offers[0].price : undefined;
       out.push({ id, name, brand, category, subcategory, description, imageUrl, volume, sku, createdAt: now, updatedAt: now, offers, lowestPrice, highestPrice: lowestPrice, priceRange: lowestPrice ? `€${lowestPrice.toFixed(2)}` : undefined });
     }
-    if (out.length) { injectProducts(out); devLog(`CSV (public) geladen: ${out.length} producten.`); }
+    if (out.length) { injectProducts(out); devLog(`CSV (public fallback) geladen: ${out.length} producten.`); }
   } catch (e) {
     devLog('CSV fetch fout:', e);
   } finally {
@@ -326,4 +343,76 @@ async function loadCsvProductsOnce() {
 
 // API simulation functions -------------------------------------------------
 
-// ...existing code...
+export const getProducts = async (
+  filters: SearchFilters = {},
+  page = 1,
+  pageSize = DEFAULT_PAGE_SIZE
+): Promise<PaginatedResponse<ProductWithOffers>> => {
+  await loadCsvProductsOnce();
+  const size = Math.min(Math.max(pageSize, 1), MAX_PAGE_SIZE);
+  let filteredProducts = [...mockProducts];
+  if (filters.query) {
+    const query = filters.query.toLowerCase();
+    filteredProducts = filteredProducts.filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      p.brand.toLowerCase().includes(query) ||
+      (p.description?.toLowerCase().includes(query) ?? false)
+    );
+  }
+  if (filters.category) {
+    filteredProducts = filteredProducts.filter(p => p.category === filters.category);
+  }
+  if (filters.brand?.length) {
+    filteredProducts = filteredProducts.filter(p => filters.brand!.includes(p.brand));
+  }
+  if (filters.minPrice != null || filters.maxPrice != null) {
+    filteredProducts = filteredProducts.filter(p => {
+      const lp = p.lowestPrice ?? Infinity;
+      if (filters.minPrice != null && lp < filters.minPrice) return false;
+      if (filters.maxPrice != null && lp > filters.maxPrice) return false;
+      return true;
+    });
+  }
+  if (filters.sortBy) {
+    switch (filters.sortBy) {
+      case 'price_asc': filteredProducts.sort((a, b) => (a.lowestPrice ?? Infinity) - (b.lowestPrice ?? Infinity)); break;
+      case 'price_desc': filteredProducts.sort((a, b) => (b.lowestPrice ?? -Infinity) - (a.lowestPrice ?? -Infinity)); break;
+      case 'rating_desc': filteredProducts.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0)); break;
+      case 'newest': filteredProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); break;
+    }
+  }
+  const total = filteredProducts.length;
+  const totalPages = Math.ceil(total / size);
+  const paginatedData = filteredProducts.slice((page - 1) * size, page * size);
+  return { data: paginatedData, page, pageSize: size, total, totalPages };
+};
+
+export const getProductById = async (id: string): Promise<ProductWithOffers | undefined> => {
+  await loadCsvProductsOnce();
+  return mockProducts.find(p => p.id === id);
+};
+
+export const getPriceHistory = async (productId: string, days = 30): Promise<PriceHistory> => {
+  await loadCsvProductsOnce();
+  const history: { date: string; price: number }[] = [];
+  const today = new Date();
+  const basePrice = mockProducts.find(p => p.id === productId)?.lowestPrice || 50;
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const fluctuation = (Math.random() - 0.5) * (basePrice * 0.1);
+    const price = parseFloat((basePrice + fluctuation).toFixed(2));
+    history.push({ date: date.toISOString().split('T')[0], price });
+  }
+  return { productId, history };
+};
+
+export const getCategories = async (): Promise<Category[]> => {
+  await loadCsvProductsOnce();
+  return mockCategories;
+};
+
+export const getBrands = async (): Promise<Brand[]> => {
+  await loadCsvProductsOnce();
+  return mockBrands;
+};

@@ -27,7 +27,9 @@ function categoryMeta(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const meta = categoryMeta(params.slug);
-  return { title: meta.title, description: meta.description, openGraph: { title: meta.title, description: meta.description } };
+  const site = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '';
+  const url = `${site}/category/${params.slug}`;
+  return { title: meta.title, description: meta.description, alternates: { canonical: url }, openGraph: { title: meta.title, description: meta.description, url } };
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
@@ -38,6 +40,29 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const maxPrice = searchParams.max ? Number(searchParams.max) : undefined;
   const sortBy = (searchParams.sort as any) || undefined;
   const productsResponse = await getProducts({ category: mapSlugToCategory(params.slug), brand: brands, minPrice, maxPrice, sortBy }, page, 24);
+  const site = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '';
+  const canonical = `${site}/category/${params.slug}` + (page > 1 ? `?page=${page}` : '');
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: site + '/' },
+      { '@type': 'ListItem', position: 2, name: readable, item: canonical }
+    ]
+  };
+  const itemListLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: readable,
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    numberOfItems: productsResponse.total,
+    itemListElement: productsResponse.data.map((p, idx) => ({
+      '@type': 'ListItem',
+      position: (page - 1) * 24 + idx + 1,
+      url: `${site}/product/${p.id}`,
+      name: p.name
+    }))
+  };
   const meta = categoryMeta(params.slug);
   return (
     <div className="container mx-auto px-4 py-10">
@@ -66,6 +91,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           </div>
         </main>
       </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }} />
     </div>
   );
 }
