@@ -66,10 +66,11 @@ export function PriceHistoryChart({ productId }: PriceHistoryChartProps) {
           <Line 
             type="monotone" 
             dataKey="price" 
-            stroke="hsl(var(--primary))" 
+            stroke="#ec4899" 
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, fill: "hsl(var(--primary))" }}
+            activeDot={{ r: 4, fill: '#ec4899' }}
+            isAnimationActive={true}
           />
         </LineChart>
       </ResponsiveContainer>

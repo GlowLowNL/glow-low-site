@@ -12,6 +12,7 @@ import {
 } from '../types/product';
 import type { Product as BaseProduct } from '../types/product';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, CSV_PATH, ENABLE_CSV, BRAND_NORMALIZATION, CATEGORY_NORMALIZATION, CANONICAL_BRANDS, CANONICAL_CATEGORIES } from './config';
+import path from 'path';
 
 // Mock data
 const mockBrands: Brand[] = [
@@ -78,176 +79,7 @@ const mockCategories: Category[] = [
 ];
 
 const mockProducts: ProductWithOffers[] = [
-  {
-    id: '1',
-    name: 'Niacinamide 10% + Zinc 1%',
-    brand: 'The Ordinary',
-    category: 'Huidverzorging',
-    subcategory: 'Serums',
-    description: 'Serum ter verbetering van de zichtbaarheid van poriën en onregelmatigheden',
-    imageUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop',
-    volume: '30ml',
-    sku: 'TO-NIA-30',
-    averageRating: 4.3,
-    reviewCount: 12847,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-07-20T00:00:00Z',
-    offers: [
-      {
-        id: '1a',
-        productId: '1',
-        retailerId: 'douglas',
-        retailerName: 'Douglas',
-        price: 6.90,
-        currency: 'EUR',
-        isOnSale: false,
-        stockStatus: 'in_stock',
-        productUrl: 'https://douglas.nl/the-ordinary-niacinamide',
-        lastUpdated: '2024-07-21T08:00:00Z',
-      },
-      {
-        id: '1b',
-        productId: '1',
-        retailerId: 'sephora',
-        retailerName: 'Sephora',
-        price: 7.50,
-        currency: 'EUR',
-        isOnSale: false,
-        stockStatus: 'in_stock',
-        productUrl: 'https://sephora.nl/the-ordinary-niacinamide',
-        lastUpdated: '2024-07-21T08:15:00Z',
-      },
-      {
-        id: '1c',
-        productId: '1',
-        retailerId: 'etos',
-        retailerName: 'Etos',
-        price: 6.90,
-        currency: 'EUR',
-        isOnSale: false,
-        stockStatus: 'in_stock',
-        productUrl: 'https://etos.nl/the-ordinary-niacinamide',
-        lastUpdated: '2024-07-21T08:30:00Z',
-      },
-    ],
-    lowestPrice: 6.90,
-    highestPrice: 7.50,
-    priceRange: '€6.90 - €7.50',
-  },
-  {
-    id: '2',
-    name: 'Foaming Facial Cleanser',
-    brand: 'CeraVe',
-    category: 'Huidverzorging',
-    subcategory: 'Reiniging',
-    description: 'Schuimende gezichtsreiniger voor de normale tot vette huid',
-    imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop',
-    volume: '236ml',
-    sku: 'CV-FOAM-236',
-    averageRating: 4.5,
-    reviewCount: 3421,
-    createdAt: '2024-02-01T00:00:00Z',
-    updatedAt: '2024-07-20T00:00:00Z',
-    offers: [
-      {
-        id: '2a',
-        productId: '2',
-        retailerId: 'kruidvat',
-        retailerName: 'Kruidvat',
-        price: 11.99,
-        originalPrice: 13.99,
-        currency: 'EUR',
-        isOnSale: true,
-        saleEndDate: '2024-07-31T23:59:59Z',
-        stockStatus: 'in_stock',
-        productUrl: 'https://kruidvat.nl/cerave-foaming-cleanser',
-        lastUpdated: '2024-07-21T09:00:00Z',
-      },
-      {
-        id: '2b',
-        productId: '2',
-        retailerId: 'etos',
-        retailerName: 'Etos',
-        price: 12.49,
-        currency: 'EUR',
-        isOnSale: false,
-        stockStatus: 'in_stock',
-        productUrl: 'https://etos.nl/cerave-foaming-cleanser',
-        lastUpdated: '2024-07-21T09:15:00Z',
-      },
-    ],
-    lowestPrice: 11.99,
-    highestPrice: 12.49,
-    priceRange: '€11.99 - €12.49',
-  },
-  {
-    id: 'csv-1090394',
-    name: 'My Way Eau De Parfum (Navulbaar)',
-    brand: 'ARMANI',
-    category: 'Parfum',
-    subcategory: 'Damesparfum',
-    description: "Premium damesparfum met bloemige noten.",
-    imageUrl: 'https://www.iciparisxl.nl/medias/prd-front-1090394-201x201.jpg?context=bWFzdGVyfHByZC1pbWFnZXN8MjU3Mzh8aW1hZ2UvanBlZ3xhRFk0TDJobE1pOHhNVEEzT0RVeU1qWXpOREkzTUM5d2NtUXRabkp2Ym5RdE1UQTVNRE01TkY4eU1ERjRNakF4TG1wd1p3fGVmOTk1MDhkYmEzNWZiM2NhMDJhMzYwMDAxNmU0ZGJjMTc1NmRlMjhkYWIwNDNmZDI3ZThkNDM3MmFiYzNlODc',
-    volume: '30ml',
-    sku: 'BP_1090394',
-    averageRating: 4.93,
-    reviewCount: 670,
-    createdAt: '2024-06-01T00:00:00Z',
-    updatedAt: '2024-07-01T00:00:00Z',
-    offers: [
-      {
-        id: 'csv-1090394-offer-1',
-        productId: 'csv-1090394',
-        retailerId: 'iciparis',
-        retailerName: 'ICI PARIS XL',
-        price: 60.99,
-        originalPrice: 90.00,
-        currency: 'EUR',
-        isOnSale: true,
-        saleEndDate: '2024-08-31T23:59:59Z',
-        stockStatus: 'in_stock',
-        productUrl: 'https://www.iciparisxl.nl/armani/my-way/eau-de-parfum-navulbaar-damesparfum/p/BP_1090394',
-        lastUpdated: '2024-07-21T08:00:00Z'
-      }
-    ],
-    lowestPrice: 60.99,
-    highestPrice: 60.99,
-    priceRange: '€60.99'
-  },
-  {
-    id: 'csv-1173052',
-    name: 'FAME Eau de Parfum',
-    brand: 'RABANNE',
-    category: 'Parfum',
-    subcategory: 'Damesparfum',
-    description: 'Sprankelende moderne geur met een iconische fles.',
-    imageUrl: 'https://www.iciparisxl.nl/medias/prd-front-1173052-201x201.jpg?context=bWFzdGVyfHByZC1pbWFnZXN8MTE3MjN8aW1hZ2UvanBlZ3xhREl3TDJnMk9TOHhNVFV4TkRBeE9ETTVPREl6T0M5d2NtUXRabkp2Ym5RdE1URTNNekExTWw4eU1ERjRNakF4TG1wd1p3fDEwNzhjZjg1YTY3ZDJlMjE3NTUxYzE1NmE4MjUyOWM0YTQ5NjVhOWI5YjU2ZGE5ZWE4N2M4YzA4NmM2NDA2OGE',
-    volume: '30ml',
-    sku: 'BP_1173052',
-    averageRating: 4.94,
-    reviewCount: 625,
-    createdAt: '2024-06-02T00:00:00Z',
-    updatedAt: '2024-07-01T00:00:00Z',
-    offers: [
-      {
-        id: 'csv-1173052-offer-1',
-        productId: 'csv-1173052',
-        retailerId: 'iciparis',
-        retailerName: 'ICI PARIS XL',
-        price: 59.52,
-        originalPrice: 74.40,
-        currency: 'EUR',
-        isOnSale: true,
-        saleEndDate: '2024-08-31T23:59:59Z',
-        stockStatus: 'in_stock',
-        productUrl: 'https://www.iciparisxl.nl/rabanne/fame/eau-de-parfum/p/BP_1173052',
-        lastUpdated: '2024-07-21T08:00:00Z'
-      }
-    ],
-    lowestPrice: 59.52,
-    highestPrice: 59.52,
-    priceRange: '€59.52'
-  }
+  // Base list intentionally left minimal; real data supplied by reference CSVs
 ];
 
 // Lightweight conditional logger
@@ -269,6 +101,123 @@ export const injectProducts = (items: ProductWithOffers[]) => {
 
 // CSV ingestion -------------------------------------------------------------
 let csvLoaded = false;
+const referenceDataState = { loaded: false };
+
+async function loadReferenceDatasets() {
+  if (referenceDataState.loaded) return;
+  if (typeof window !== 'undefined') return; // server only
+  try {
+    const datasetsDir = path.join(process.cwd(), 'public', 'datasets');
+    const { readdir, readFile, stat } = await import('fs/promises');
+    let entries: string[] = [];
+    try { entries = await readdir(datasetsDir); } catch { referenceDataState.loaded = true; return; }
+    const csvFiles = entries.filter(f => f.endsWith('.csv'));
+    // aggregation map key => product (without offers yet) + offers array temp
+    interface Agg { base: Omit<ProductWithOffers, 'offers'|'lowestPrice'|'highestPrice'|'priceRange'> & { offers: PriceOffer[] } }
+    const mapAgg = new Map<string, Agg>();
+    const norm = (v: string) => v.normalize('NFKD').replace(/[^\w\s]/g,'').trim().toLowerCase();
+
+    for (const file of csvFiles) {
+      const full = path.join(datasetsDir, file);
+      try {
+        const s = await stat(full); if (!s.isFile()) continue;
+        const raw = await readFile(full, 'utf8');
+        const lines = raw.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) continue;
+        const header = lines[0].split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/).map(h => h.trim().toLowerCase());
+        const idx = (name: string) => header.indexOf(name);
+        for (let i = 1; i < lines.length; i++) {
+          const rowLine = lines[i];
+          const cols = rowLine.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+          if (cols.length !== header.length) continue;
+          const get = (k: string) => { const j = idx(k); return j >= 0 ? cols[j].replace(/^\"|\"$/g,'').trim() : ''; };
+          const name = get('name'); if (!name) continue;
+          const brandRaw = get('brand'); if (!brandRaw) continue;
+          const brandKey = brandRaw.toUpperCase();
+          const brand = (BRAND_NORMALIZATION[brandKey] || brandRaw).trim();
+          if (!mockBrands.some(b => b.name === brand)) {
+            mockBrands.push({ id: (mockBrands.length+1).toString(), name: brand, slug: brand.toLowerCase().replace(/[^a-z0-9]+/g,'-'), logoUrl: undefined });
+          }
+          let categoryRaw = get('category') || get('top_category') || 'Parfum';
+          categoryRaw = categoryRaw.replace(/_/g,' ').toLowerCase();
+          if (categoryRaw === 'parfum' || categoryRaw === 'perfume') categoryRaw = 'Parfum';
+          if (categoryRaw === 'make-up' || categoryRaw === 'make up') categoryRaw = 'Make-up';
+          if (categoryRaw === 'huidverzorging' || categoryRaw === 'skincare') categoryRaw = 'Huidverzorging';
+          const category = categoryRaw.charAt(0).toUpperCase() + categoryRaw.slice(1);
+          const subcategoryRaw = get('subcategory') || get('type') || '';
+          const subcategory = subcategoryRaw ? subcategoryRaw.replace(/_/g,' ').replace(/\s+/g,' ').trim() : undefined;
+          const size = get('size') || get('volume') || undefined;
+          const idBase = get('internal_code') || get('internal_code2') || `${file.replace(/\.csv$/,'')}-${i}`;
+          const urlVal = get('url');
+          const hostMatch = urlVal.match(/https?:\/\/([^/]+)/);
+          const host = (hostMatch ? hostMatch[1] : '').replace(/^www\./, '');
+          const retailerId = host.split('.')[0] || 'retailer';
+          const productUrl = urlVal || '#';
+          const priceStr = get('price') || get('prijs');
+          const parseEuro = (val: string): number | undefined => { if (!val) return undefined; const cleaned = val.replace(/[^0-9,\.]/g,'').replace(/,(\d{2})$/, '.$1'); const num = parseFloat(cleaned); return isNaN(num) ? undefined : num; };
+          const price = parseEuro(priceStr) || 0;
+          const wasPrice = parseEuro(get('originalprice') || get('was_price') || get('wasprice'));
+          const rating = parseFloat(get('rating'));
+          const reviewCount = parseInt(get('review_count') || get('reviewcount') || '0', 10) || 0;
+          const imageUrl = get('image_url') || get('image') || get('imageurl') || 'https://via.placeholder.com/600x600.png?text=Product';
+          const description = get('description') || undefined;
+          const now = new Date().toISOString();
+          const key = [norm(brand), norm(name), norm(size || '')].join('|');
+          let agg = mapAgg.get(key);
+          if (!agg) {
+            const slugCore = `${brand}-${name}-${size||''}`.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-');
+            const baseId = slugCore || key.replace(/\|/g,'-');
+            agg = { base: { id: baseId, name, brand, category, subcategory, description, imageUrl, volume: size, sku: idBase, averageRating: isNaN(rating) ? undefined : rating, reviewCount: reviewCount || undefined, createdAt: now, updatedAt: now, offers: [] } };
+            mapAgg.set(key, agg);
+          } else {
+            // update rating heuristics (prefer higher review count average)
+            if (!isNaN(rating)) {
+              const existing = agg.base.averageRating || rating;
+              const existingCount = agg.base.reviewCount || 0;
+              if (reviewCount > existingCount) {
+                agg.base.averageRating = rating;
+                agg.base.reviewCount = reviewCount || undefined;
+              } else if (!agg.base.averageRating) {
+                agg.base.averageRating = rating;
+              }
+            }
+            // keep earliest createdAt, update updatedAt
+            agg.base.updatedAt = now;
+          }
+          const offer: PriceOffer = { id: `${agg.base.id}-offer-${agg.base.offers.length+1}`, productId: agg.base.id, retailerId, retailerName: retailerId.charAt(0).toUpperCase()+retailerId.slice(1), price, originalPrice: wasPrice, currency: 'EUR', isOnSale: !!(wasPrice && wasPrice > price), saleEndDate: undefined, stockStatus: 'in_stock', productUrl, lastUpdated: now };
+          // avoid duplicate retailer offers with same price
+          if (!agg.base.offers.some(o => o.retailerId === offer.retailerId && o.price === offer.price)) {
+            agg.base.offers.push(offer);
+          }
+        }
+      } catch (e) {
+        devLog('Dataset parse error', file, e);
+      }
+    }
+    if (mapAgg.size) {
+      const merged: ProductWithOffers[] = [];
+      for (const { base } of mapAgg.values()) {
+        const prices = base.offers.map(o => o.price).filter(p => p > 0);
+        const low = Math.min(...prices);
+        const high = Math.max(...prices);
+        const product: ProductWithOffers = { ...base, offers: base.offers, lowestPrice: low, highestPrice: high, priceRange: low === high ? `€${low.toFixed(2)}` : `€${low.toFixed(2)} - €${high.toFixed(2)}` };
+        // Voorzie ieder product direct van een gegenereerde (deterministische) historie (180 dagen) zodat charts meteen data hebben
+        generateDeterministicHistory(product.id, product.lowestPrice || (low || 40), 180);
+        merged.push(product);
+      }
+      injectProducts(merged);
+      referenceDataState.loaded = true;
+      syntheticGenerated.done = true;
+      devLog('Referentiedatasets gemerged producten:', merged.length);
+    } else {
+      referenceDataState.loaded = true;
+    }
+  } catch (e) {
+    devLog('Referentiedata fout:', e);
+    referenceDataState.loaded = true;
+  }
+}
+
 async function loadCsvProductsOnce() {
   if (csvLoaded || !ENABLE_CSV) return;
   // Prefer server-side loader using fs (never bundled client-side)
@@ -405,7 +354,24 @@ export const getPriceHistory = async (productId: string, days = 30): Promise<Pri
 
 export const getCategories = async (): Promise<Category[]> => {
   await loadCsvProductsOnce();
-  return mockCategories;
+  // Dynamisch afleiden uit producten
+  const mapCat: Record<string, { cat: Category; subs: Record<string, Category> }> = {};
+  for (const p of mockProducts) {
+    if (!p.category) continue;
+    if (!mapCat[p.category]) {
+      const id = 'cat-' + Object.keys(mapCat).length;
+      mapCat[p.category] = { cat: { id, name: p.category, slug: p.category.toLowerCase().replace(/[^a-z0-9]+/g,'-'), description: undefined, children: [] }, subs: {} };
+    }
+    if (p.subcategory) {
+      const bucket = mapCat[p.category];
+      if (!bucket.subs[p.subcategory]) {
+        const sid = bucket.cat.id + '-' + (Object.keys(bucket.subs).length+1);
+        bucket.subs[p.subcategory] = { id: sid, name: p.subcategory, slug: p.subcategory.toLowerCase().replace(/[^a-z0-9]+/g,'-'), parentId: bucket.cat.id } as Category;
+      }
+    }
+  }
+  const out: Category[] = Object.values(mapCat).map(v => ({ ...v.cat, children: Object.values(v.subs) }));
+  return out.length ? out : mockCategories;
 };
 
 export const getBrands = async (): Promise<Brand[]> => {
@@ -450,7 +416,7 @@ function generateDeterministicHistory(productId: string, base: number, days = 12
 // Synthetic product generation ------------------------------------------------
 const syntheticGenerated = { done: false };
 function generateSyntheticProducts(targetTotal = 80) {
-  if (syntheticGenerated.done) return;
+  if (referenceDataState.loaded) { syntheticGenerated.done = true; return; }
   const current = mockProducts.length;
   if (current >= targetTotal) { syntheticGenerated.done = true; return; }
 

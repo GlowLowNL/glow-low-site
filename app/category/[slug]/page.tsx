@@ -102,6 +102,8 @@ function mapSlugToCategory(slug: string) {
     case 'huidverzorging': return 'Huidverzorging';
     case 'make-up': return 'Make-up';
     case 'parfum': return 'Parfum';
-    default: return '';
+    default:
+      return slug.replace(/-/g,' ') // hyphens to spaces
+        .replace(/\b(\w)/g, s => s.toUpperCase()); // capitalize words
   }
 }

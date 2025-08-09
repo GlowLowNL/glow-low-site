@@ -14,10 +14,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
       <div className="relative overflow-hidden rounded-2xl bg-card/70 backdrop-blur border transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
         <div className="relative aspect-square w-full">
           <Image
-            src={product.imageUrl.replace(/([?&])q=\d+/,'$1q=80')}
+            src={product.imageUrl.includes('unsplash.com') ? `${product.imageUrl}&auto=format&fit=crop&w=600&h=600&q=80` : product.imageUrl}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-110 [image-rendering:auto]"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-110 [image-rendering:high-quality]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             loading="lazy"
             priority={false}

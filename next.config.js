@@ -9,6 +9,7 @@ const nextConfig = {
       'cdn.shopify.com',
       'static.zara.net',
       'media.douglas.de',
+      'media.douglas.nl',
       'media.sephora.com',
       'lookfantastic.com',
       'www.iciparisxl.nl'
