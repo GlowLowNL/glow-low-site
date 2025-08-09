@@ -205,7 +205,7 @@ export const getProducts = async (
       p =>
         p.name.toLowerCase().includes(query) ||
         p.brand.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query)
+        (p.description?.toLowerCase().includes(query) ?? false)
     );
   }
 
@@ -221,13 +221,13 @@ export const getProducts = async (
   if (filters.sortBy) {
     switch (filters.sortBy) {
       case 'price_asc':
-        filteredProducts.sort((a, b) => a.lowestPrice - b.lowestPrice);
+        filteredProducts.sort((a, b) => (a.lowestPrice ?? Infinity) - (b.lowestPrice ?? Infinity));
         break;
       case 'price_desc':
-        filteredProducts.sort((a, b) => b.lowestPrice - a.lowestPrice);
+        filteredProducts.sort((a, b) => (b.lowestPrice ?? -Infinity) - (a.lowestPrice ?? -Infinity));
         break;
       case 'rating_desc':
-        filteredProducts.sort((a, b) => b.averageRating - a.averageRating);
+        filteredProducts.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
         break;
       case 'newest':
         filteredProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
