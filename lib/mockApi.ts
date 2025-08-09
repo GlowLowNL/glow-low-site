@@ -273,7 +273,7 @@ async function loadCsvProductsOnce() {
   if (csvLoaded || !ENABLE_CSV) return;
   try {
     if (typeof process === 'undefined' || typeof window !== 'undefined') { csvLoaded = true; return; }
-    const fsMod = await import('node:fs/promises').catch(() => null);
+    const fsMod = await import('fs/promises').catch(() => null);
     if (!fsMod) { csvLoaded = true; return; }
     const fs = fsMod;
     const path = CSV_PATH;
