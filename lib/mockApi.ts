@@ -11,6 +11,7 @@ import {
   PaginatedResponse 
 } from '../types/product';
 import type { Product as BaseProduct } from '../types/product';
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, CSV_PATH, ENABLE_CSV, BRAND_NORMALIZATION, CATEGORY_NORMALIZATION, CANONICAL_BRANDS, CANONICAL_CATEGORIES } from './config';
 
 // Mock data
 const mockBrands: Brand[] = [
@@ -251,7 +252,7 @@ const mockProducts: ProductWithOffers[] = [
 
 // Lightweight conditional logger
 const devLog = (...args: any[]) => {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && (process.env.LOG_LEVEL || 'debug') !== 'silent') {
     // eslint-disable-next-line no-console
     console.log(...args);
   }
@@ -269,58 +270,52 @@ export const injectProducts = (items: ProductWithOffers[]) => {
 // CSV ingestion -------------------------------------------------------------
 let csvLoaded = false;
 async function loadCsvProductsOnce() {
-  if (csvLoaded) return;
+  if (csvLoaded || !ENABLE_CSV) return;
   try {
-    if (typeof process === 'undefined' || typeof window !== 'undefined') {
-      csvLoaded = true; // skip on client bundle
-      return;
-    }
-    // Dynamically require fs only in Node (avoid bundling for edge / client)
+    if (typeof process === 'undefined' || typeof window !== 'undefined') { csvLoaded = true; return; }
     const fsMod = await import('node:fs/promises').catch(() => null);
     if (!fsMod) { csvLoaded = true; return; }
     const fs = fsMod;
-    const path = `${process.cwd()}/data/products.csv`;
-    const exists = await fs
-      .stat(path)
-      .then(() => true)
-      .catch(() => false);
-    if (!exists) {
-      csvLoaded = true;
-      return;
-    }
+    const path = CSV_PATH;
+    const exists = await fs.stat(path).then(() => true).catch(() => false);
+    if (!exists) { csvLoaded = true; return; }
     const raw = await fs.readFile(path, 'utf8');
     const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
     if (lines.length < 2) { csvLoaded = true; return; }
-    const header = lines[0].split(/[,;]\s*/).map(h => h.trim().toLowerCase());
+    const header = lines[0].split(/[,;]\s*/).map(h => h.trim());
     const out: ProductWithOffers[] = [];
     for (let i = 1; i < lines.length; i++) {
       const cols = lines[i].split(/[,;]\s*/);
       if (cols.length !== header.length) continue;
       const row: Record<string, string> = {};
-      header.forEach((h, idx) => (row[h] = cols[idx]));
+      header.forEach((h, idx) => (row[h.toLowerCase()] = cols[idx]));
+      // Basic validation
+      if (!row.name && !row.title) continue;
+      const rawBrand = (row.brand || row.merk || '').trim();
+      const brandNormKey = rawBrand.toUpperCase();
+      const brand = (BRAND_NORMALIZATION[brandNormKey] || rawBrand || 'Onbekend merk') as string;
+      const rawCategory = (row.category || row.categorie || '').trim();
+      const catNormKey = rawCategory.toUpperCase();
+      const category = (CATEGORY_NORMALIZATION[catNormKey] || rawCategory || 'Parfum') as string;
+      if (brand && !CANONICAL_BRANDS.includes(brand as any)) continue; // Skip unknown brands
+      if (category && !CANONICAL_CATEGORIES.includes(category as any)) continue; // Skip unknown categories
       const id = row.id || row.sku || `csv-${i}`;
       if (mockProducts.some(p => p.id === id)) continue;
       const name = row.name || row.title || 'Onbekend product';
-      const brandRaw = row.brand || row.merk || 'Onbekend merk';
-      const brand = brandRaw
-        .replace(/YVES SAINT LAURENT/i, 'Yves Saint Laurent')
-        .replace(/ESTEE LAUDER/i, 'Estée Lauder')
-        .replace(/MAYBELLINE/i, 'Maybelline');
-      const categoryRaw = row.category || row.categorie || 'Parfum';
-      const category = /huidverzorging/i.test(categoryRaw) ? 'Huidverzorging' : /make.?up/i.test(categoryRaw) ? 'Make-up' : /parfum/i.test(categoryRaw) ? 'Parfum' : 'Parfum';
       const subcategory = row.subcategory || row.subcategorie || undefined;
       const description = row.description || row.omschrijving || '';
       const imageUrl = row.imageurl || row.image || row.afbeelding || 'https://via.placeholder.com/400x400.png?text=Product';
       const volume = row.volume || row.inhoud || undefined;
       const sku = row.sku || row.code || undefined;
-      const price = parseFloat(row.price || row.prijs || '0') || undefined;
-      const currency = row.currency || 'EUR';
       const now = new Date().toISOString();
+      const priceNum = parseFloat(row.price || row.prijs || '');
+      const price = !isNaN(priceNum) && priceNum > 0 ? priceNum : undefined;
+      const currency = row.currency || 'EUR';
       const offers: PriceOffer[] = price ? [{ id: `${id}-offer-1`, productId: id, retailerId: 'csvimport', retailerName: 'CSV Retailer', price, currency, isOnSale: false, stockStatus: 'in_stock', productUrl: row.url || row.link || '#', lastUpdated: now }] : [];
       const lowestPrice = offers.length ? offers[0].price : undefined;
       out.push({ id, name, brand, category, subcategory, description, imageUrl, volume, sku, createdAt: now, updatedAt: now, offers, lowestPrice, highestPrice: lowestPrice, priceRange: lowestPrice ? `€${lowestPrice.toFixed(2)}` : undefined });
     }
-    if (out.length) { injectProducts(out); devLog(`CSV: ${out.length} producten toegevoegd uit data/products.csv`); }
+    if (out.length) { injectProducts(out); devLog(`CSV: ${out.length} valide producten toegevoegd.`); }
   } catch (err) {
     devLog('CSV load skipped/error:', err);
   } finally {
@@ -343,65 +338,43 @@ const simulateDelay = async (ms: number) => {
 export const getProducts = async (
   filters: SearchFilters = {},
   page = 1,
-  pageSize = 10
+  pageSize = DEFAULT_PAGE_SIZE
 ): Promise<PaginatedResponse<ProductWithOffers>> => {
   await loadCsvProductsOnce();
   devLog('Fetching products with filters:', filters);
-
-  // Simulate async delay
   await simulateDelay(200);
-
+  const size = Math.min(Math.max(pageSize, 1), MAX_PAGE_SIZE);
   let filteredProducts = [...mockProducts];
-
-  // Apply filters (simple implementation)
   if (filters.query) {
     const query = filters.query.toLowerCase();
-    filteredProducts = filteredProducts.filter(
-      p =>
-        p.name.toLowerCase().includes(query) ||
-        p.brand.toLowerCase().includes(query) ||
-        (p.description?.toLowerCase().includes(query) ?? false)
-    );
+    filteredProducts = filteredProducts.filter(p => p.name.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query) || (p.description?.toLowerCase().includes(query) ?? false));
   }
-
   if (filters.category) {
     filteredProducts = filteredProducts.filter(p => p.category === filters.category);
   }
-
-  if (filters.brand && filters.brand.length > 0) {
-    filteredProducts = filteredProducts.filter(p => filters.brand?.includes(p.brand));
+  if (filters.brand?.length) {
+    filteredProducts = filteredProducts.filter(p => filters.brand!.includes(p.brand));
   }
-
-  // Apply sorting
+  if (filters.minPrice != null || filters.maxPrice != null) {
+    filteredProducts = filteredProducts.filter(p => {
+      const lp = p.lowestPrice ?? Infinity;
+      if (filters.minPrice != null && lp < filters.minPrice) return false;
+      if (filters.maxPrice != null && lp > filters.maxPrice) return false;
+      return true;
+    });
+  }
   if (filters.sortBy) {
     switch (filters.sortBy) {
-      case 'price_asc':
-        filteredProducts.sort((a, b) => (a.lowestPrice ?? Infinity) - (b.lowestPrice ?? Infinity));
-        break;
-      case 'price_desc':
-        filteredProducts.sort((a, b) => (b.lowestPrice ?? -Infinity) - (a.lowestPrice ?? -Infinity));
-        break;
-      case 'rating_desc':
-        filteredProducts.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
-        break;
-      case 'newest':
-        filteredProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        break;
+      case 'price_asc': filteredProducts.sort((a, b) => (a.lowestPrice ?? Infinity) - (b.lowestPrice ?? Infinity)); break;
+      case 'price_desc': filteredProducts.sort((a, b) => (b.lowestPrice ?? -Infinity) - (a.lowestPrice ?? -Infinity)); break;
+      case 'rating_desc': filteredProducts.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0)); break;
+      case 'newest': filteredProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); break;
     }
   }
-
-  // Paginate results
   const total = filteredProducts.length;
-  const totalPages = Math.ceil(total / pageSize);
-  const paginatedData = filteredProducts.slice((page - 1) * pageSize, page * pageSize);
-
-  return {
-    data: paginatedData,
-    page,
-    pageSize,
-    total,
-    totalPages,
-  };
+  const totalPages = Math.ceil(total / size);
+  const paginatedData = filteredProducts.slice((page - 1) * size, page * size);
+  return { data: paginatedData, page, pageSize: size, total, totalPages };
 };
 
 /**

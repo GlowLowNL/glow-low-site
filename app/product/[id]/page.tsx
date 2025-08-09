@@ -2,6 +2,7 @@ import { getProductById, getProducts } from "@/lib/mockApi";
 import { ProductPage } from "@/components/product/product-page";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 
 type Props = {
   params: { id: string }
@@ -50,10 +51,19 @@ export async function generateStaticParams() {
 
 export default async function Page({ params }: Props) {
   const product = await getProductById(params.id);
-
   if (!product) {
     notFound();
   }
-
-  return <ProductPage product={product} />;
+  return (
+    <>
+      <div className="container mx-auto px-4 pt-6">
+        <Breadcrumbs items={[
+          { href: '/', label: 'Home' },
+          { href: `/category/${product.category.toLowerCase()}`.replace(/\s+/g,'-'), label: product.category },
+          { label: product.name }
+        ]} />
+      </div>
+      <ProductPage product={product} />
+    </>
+  );
 }

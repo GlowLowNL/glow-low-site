@@ -1,8 +1,11 @@
 import { getProducts } from '@/lib/mockApi';
 import { ProductCard } from '@/components/product/product-card';
 import { Metadata } from 'next';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
+// Temporary stub (replace with real component when created)
+function ClientCategoryFilters(_props: any) { return null; }
 
-interface Props { params: { slug: string }; searchParams: { page?: string } }
+interface Props { params: { slug: string }; searchParams: { page?: string; brand?: string | string[]; min?: string; max?: string; sort?: string } }
 
 function categoryMeta(slug: string) {
   const map: Record<string, { title: string; description: string }> = {
@@ -30,22 +33,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CategoryPage({ params, searchParams }: Props) {
   const page = Number(searchParams.page) || 1;
   const readable = decodeURIComponent(params.slug);
-  const productsResponse = await getProducts({ category: mapSlugToCategory(params.slug) }, page, 24);
+  const brands = (searchParams.brand ? (Array.isArray(searchParams.brand) ? searchParams.brand : searchParams.brand.split(',')) : undefined) as string[] | undefined;
+  const minPrice = searchParams.min ? Number(searchParams.min) : undefined;
+  const maxPrice = searchParams.max ? Number(searchParams.max) : undefined;
+  const sortBy = (searchParams.sort as any) || undefined;
+  const productsResponse = await getProducts({ category: mapSlugToCategory(params.slug), brand: brands, minPrice, maxPrice, sortBy }, page, 24);
   const meta = categoryMeta(params.slug);
-
   return (
     <div className="container mx-auto px-4 py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold capitalize tracking-tight">{readable}</h1>
-        <p className="text-muted-foreground mt-2 text-sm">{meta.description}</p>
+      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { label: readable }]} className="mb-6" />
+      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold capitalize tracking-tight">{readable}</h1>
+          <p className="text-muted-foreground mt-2 text-sm">{meta.description}</p>
+        </div>
+        <div className="md:min-w-[300px]">
+          <ClientCategoryFilters variant="sort" />
+        </div>
       </div>
-      {productsResponse.data.length === 0 && (
-        <p className="text-muted-foreground">Geen producten gevonden.</p>
-      )}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {productsResponse.data.map(p => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+      <div className="flex flex-col md:flex-row gap-8">
+        <aside className="md:w-64 md:shrink-0">
+          <ClientCategoryFilters />
+        </aside>
+        <main className="flex-1">
+          {productsResponse.data.length === 0 && (
+            <p className="text-muted-foreground">Geen producten gevonden.</p>
+          )}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {productsResponse.data.map(p => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </main>
       </div>
     </div>
   );
