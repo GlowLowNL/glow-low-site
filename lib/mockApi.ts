@@ -266,6 +266,98 @@ export const injectProducts = (items: ProductWithOffers[]) => {
   }
 };
 
+// CSV ingestion -------------------------------------------------------------
+let csvLoaded = false;
+async function loadCsvProductsOnce() {
+  if (csvLoaded) return;
+  try {
+    const fs = await import('fs/promises');
+    const path = `${process.cwd()}/data/products.csv`;
+    const exists = await fs
+      .stat(path)
+      .then(() => true)
+      .catch(() => false);
+    if (!exists) {
+      csvLoaded = true; // prevent repeated checks
+      return;
+    }
+    const raw = await fs.readFile(path, 'utf8');
+    const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (lines.length < 2) {
+      csvLoaded = true;
+      return;
+    }
+    const header = lines[0].split(/[,;]\s*/).map(h => h.trim().toLowerCase());
+    const out: ProductWithOffers[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(/[,;]\s*/);
+      if (cols.length !== header.length) continue;
+      const row: Record<string, string> = {};
+      header.forEach((h, idx) => (row[h] = cols[idx]));
+      const id = row.id || row.sku || `csv-${i}`;
+      if (mockProducts.some(p => p.id === id)) continue;
+      const name = row.name || row.title || 'Onbekend product';
+      const brandRaw = row.brand || row.merk || 'Onbekend merk';
+      const brand = brandRaw
+        .replace(/YVES SAINT LAURENT/i, 'Yves Saint Laurent')
+        .replace(/ESTEE LAUDER/i, 'Estée Lauder')
+        .replace(/MAYBELLINE/i, 'Maybelline');
+      const categoryRaw = row.category || row.categorie || 'Parfum';
+      const category = /huidverzorging/i.test(categoryRaw) ? 'Huidverzorging' : /make.?up/i.test(categoryRaw) ? 'Make-up' : /parfum/i.test(categoryRaw) ? 'Parfum' : 'Parfum';
+      const subcategory = row.subcategory || row.subcategorie || undefined;
+      const description = row.description || row.omschrijving || '';
+      const imageUrl = row.imageurl || row.image || row.afbeelding || 'https://via.placeholder.com/400x400.png?text=Product';
+      const volume = row.volume || row.inhoud || undefined;
+      const sku = row.sku || row.code || undefined;
+      const price = parseFloat(row.price || row.prijs || '0') || undefined;
+      const currency = row.currency || 'EUR';
+      const now = new Date().toISOString();
+      const offers: PriceOffer[] = price
+        ? [
+            {
+              id: `${id}-offer-1`,
+              productId: id,
+              retailerId: 'csvimport',
+              retailerName: 'CSV Retailer',
+              price,
+              currency,
+              isOnSale: false,
+              stockStatus: 'in_stock',
+              productUrl: row.url || row.link || '#',
+              lastUpdated: now,
+            },
+          ]
+        : [];
+      const lowestPrice = offers.length ? offers[0].price : undefined;
+      out.push({
+        id,
+        name,
+        brand,
+        category,
+        subcategory,
+        description,
+        imageUrl,
+        volume,
+        sku,
+        createdAt: now,
+        updatedAt: now,
+        offers,
+        lowestPrice,
+        highestPrice: lowestPrice,
+        priceRange: lowestPrice ? `€${lowestPrice.toFixed(2)}` : undefined,
+      });
+    }
+    if (out.length) {
+      injectProducts(out);
+      devLog(`CSV: ${out.length} producten toegevoegd uit data/products.csv`);
+    }
+  } catch (err) {
+    devLog('CSV load error (ok to ignore in dev):', err);
+  } finally {
+    csvLoaded = true;
+  }
+}
+
 // Utility to optionally simulate latency (disabled in production)
 const simulateDelay = async (ms: number) => {
   if (process.env.NODE_ENV === 'production') return; // skip in production build/runtime
@@ -283,6 +375,7 @@ export const getProducts = async (
   page = 1,
   pageSize = 10
 ): Promise<PaginatedResponse<ProductWithOffers>> => {
+  await loadCsvProductsOnce();
   devLog('Fetching products with filters:', filters);
 
   // Simulate async delay
@@ -345,6 +438,7 @@ export const getProducts = async (
  * Fetches a single product by its ID.
  */
 export const getProductById = async (id: string): Promise<ProductWithOffers | undefined> => {
+  await loadCsvProductsOnce();
   // Simulate async delay
   await simulateDelay(120);
   const product = mockProducts.find(p => p.id === id);

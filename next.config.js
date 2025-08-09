@@ -10,7 +10,8 @@ const nextConfig = {
       'static.zara.net',
       'media.douglas.de',
       'media.sephora.com',
-      'lookfantastic.com'
+      'lookfantastic.com',
+      'www.iciparisxl.nl'
     ],
     unoptimized: process.env.NODE_ENV === 'development',
   },

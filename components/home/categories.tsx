@@ -1,22 +1,23 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Categories() {
   const categories = [
     {
       name: "Huidverzorging",
-      href: "/huidverzorging",
+      href: "/category/huidverzorging",
       description: "Reinigen, hydrateren en beschermen",
       image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop"
     },
     {
       name: "Make-up",
-      href: "/make-up", 
+      href: "/category/make-up", 
       description: "Foundation, lipstick en meer",
       image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=300&fit=crop"
     },
     {
       name: "Parfum",
-      href: "/parfum",
+      href: "/category/parfum",
       description: "Dames, heren en unisex geuren",
       image: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=300&fit=crop"
     }
@@ -33,11 +34,13 @@ export default function Categories() {
           {categories.map((category) => (
             <Link key={category.name} href={category.href} className="group relative rounded-3xl border overflow-hidden bg-card/70 backdrop-blur shadow-sm transition-all duration-300 hover:shadow-xl">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <img 
+                <Image 
                   src={category.image}
                   alt={category.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  loading="lazy"
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  sizes="(max-width:768px) 100vw, (max-width:1200px) 33vw, 400px"
+                  priority={false}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
                 <div className="absolute bottom-5 left-5 right-5">
