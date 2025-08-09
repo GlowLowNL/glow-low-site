@@ -36,14 +36,10 @@ export interface PriceOffer {
 
 export interface PriceHistory {
   productId: string;
-  retailerId: string;
-  entries: PriceHistoryEntry[];
-}
-
-export interface PriceHistoryEntry {
-  date: string;
-  price: number;
-  isOnSale: boolean;
+  history: {
+    date: string;
+    price: number;
+  }[];
 }
 
 export interface ProductWithOffers extends Product {
@@ -57,21 +53,17 @@ export interface SearchFilters {
   query?: string;
   category?: string;
   brand?: string[];
-  priceMin?: number;
-  priceMax?: number;
-  onSaleOnly?: boolean;
-  inStockOnly?: boolean;
-  sortBy?: 'price_asc' | 'price_desc' | 'name' | 'brand' | 'newest';
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: 'price_asc' | 'price_desc' | 'rating_desc' | 'newest';
 }
 
 export interface PaginatedResponse<T> {
   data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface Category {
