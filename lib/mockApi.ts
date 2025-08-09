@@ -271,22 +271,26 @@ let csvLoaded = false;
 async function loadCsvProductsOnce() {
   if (csvLoaded) return;
   try {
-    const fs = await import('fs/promises');
+    if (typeof process === 'undefined' || typeof window !== 'undefined') {
+      csvLoaded = true; // skip on client bundle
+      return;
+    }
+    // Dynamically require fs only in Node (avoid bundling for edge / client)
+    const fsMod = await import('node:fs/promises').catch(() => null);
+    if (!fsMod) { csvLoaded = true; return; }
+    const fs = fsMod;
     const path = `${process.cwd()}/data/products.csv`;
     const exists = await fs
       .stat(path)
       .then(() => true)
       .catch(() => false);
     if (!exists) {
-      csvLoaded = true; // prevent repeated checks
+      csvLoaded = true;
       return;
     }
     const raw = await fs.readFile(path, 'utf8');
     const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
-    if (lines.length < 2) {
-      csvLoaded = true;
-      return;
-    }
+    if (lines.length < 2) { csvLoaded = true; return; }
     const header = lines[0].split(/[,;]\s*/).map(h => h.trim().toLowerCase());
     const out: ProductWithOffers[] = [];
     for (let i = 1; i < lines.length; i++) {
@@ -312,47 +316,13 @@ async function loadCsvProductsOnce() {
       const price = parseFloat(row.price || row.prijs || '0') || undefined;
       const currency = row.currency || 'EUR';
       const now = new Date().toISOString();
-      const offers: PriceOffer[] = price
-        ? [
-            {
-              id: `${id}-offer-1`,
-              productId: id,
-              retailerId: 'csvimport',
-              retailerName: 'CSV Retailer',
-              price,
-              currency,
-              isOnSale: false,
-              stockStatus: 'in_stock',
-              productUrl: row.url || row.link || '#',
-              lastUpdated: now,
-            },
-          ]
-        : [];
+      const offers: PriceOffer[] = price ? [{ id: `${id}-offer-1`, productId: id, retailerId: 'csvimport', retailerName: 'CSV Retailer', price, currency, isOnSale: false, stockStatus: 'in_stock', productUrl: row.url || row.link || '#', lastUpdated: now }] : [];
       const lowestPrice = offers.length ? offers[0].price : undefined;
-      out.push({
-        id,
-        name,
-        brand,
-        category,
-        subcategory,
-        description,
-        imageUrl,
-        volume,
-        sku,
-        createdAt: now,
-        updatedAt: now,
-        offers,
-        lowestPrice,
-        highestPrice: lowestPrice,
-        priceRange: lowestPrice ? `€${lowestPrice.toFixed(2)}` : undefined,
-      });
+      out.push({ id, name, brand, category, subcategory, description, imageUrl, volume, sku, createdAt: now, updatedAt: now, offers, lowestPrice, highestPrice: lowestPrice, priceRange: lowestPrice ? `€${lowestPrice.toFixed(2)}` : undefined });
     }
-    if (out.length) {
-      injectProducts(out);
-      devLog(`CSV: ${out.length} producten toegevoegd uit data/products.csv`);
-    }
+    if (out.length) { injectProducts(out); devLog(`CSV: ${out.length} producten toegevoegd uit data/products.csv`); }
   } catch (err) {
-    devLog('CSV load error (ok to ignore in dev):', err);
+    devLog('CSV load skipped/error:', err);
   } finally {
     csvLoaded = true;
   }
