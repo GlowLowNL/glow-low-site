@@ -76,24 +76,55 @@ async function loadReferenceDatasetsPublic() {
         const fs = await import('fs/promises');
         const path = await import('path');
         
-        const datasetsDir = path.join(process.cwd(), 'public', 'datasets');
+        // Use process.cwd() which works better in Vercel builds
+        const publicDir = path.join(process.cwd(), 'public');
+        const datasetsDir = path.join(publicDir, 'datasets');
+        
+        devLog(`Looking for datasets in: ${datasetsDir}`);
+        
+        // Check if datasets directory exists
+        try {
+          await fs.access(datasetsDir);
+          devLog('Datasets directory exists');
+        } catch (e) {
+          devLog('Datasets directory not found, trying alternative paths...');
+          // Try alternative path for Vercel
+          const altPath = path.join(process.cwd(), 'datasets');
+          try {
+            await fs.access(altPath);
+            devLog(`Found alternative path: ${altPath}`);
+          } catch (e2) {
+            devLog('No datasets directory found, using fallback data');
+            referenceDataState.loaded = true;
+            return;
+          }
+        }
+        
         const files = ['douglas_sample.csv', 'multi_shop_parfum.csv'];
         
         for (const file of files) {
           try {
             const filePath = path.join(datasetsDir, file);
+            devLog(`Attempting to read: ${filePath}`);
+            
             const csvContent = await fs.readFile(filePath, 'utf-8');
             devLog(`Loaded ${file}, ${csvContent.length} chars`);
             
             const lines = csvContent.split(/\r?\n/).filter(l => l.trim());
-            if (lines.length < 2) continue;
+            if (lines.length < 2) {
+              devLog(`File ${file} has insufficient data (${lines.length} lines)`);
+              continue;
+            }
             
             const header = lines[0].split(',').map(h => h.trim().toLowerCase());
             devLog(`Headers: ${header.join(', ')}`);
             
             for (let i = 1; i < lines.length; i++) {
               const row = lines[i].split(',');
-              if (row.length !== header.length) continue;
+              if (row.length !== header.length) {
+                devLog(`Skipping malformed row ${i} in ${file}`);
+                continue;
+              }
               
               const get = (key: string) => {
                 const idx = header.indexOf(key);
@@ -108,7 +139,10 @@ async function loadReferenceDatasetsPublic() {
               const rating = parseFloat(get('rating')) || 0;
               const reviewCount = parseInt(get('reviewcount')) || 0;
               
-              if (!name || !brand) continue;
+              if (!name || !brand) {
+                devLog(`Skipping row ${i} in ${file}: missing name or brand`);
+                continue;
+              }
               
               const productId = `${brand.toLowerCase().replace(/\s+/g, '-')}-${name.toLowerCase().replace(/\s+/g, '-')}-${i}`;
               
@@ -144,10 +178,45 @@ async function loadReferenceDatasetsPublic() {
             }
           } catch (e) {
             devLog(`Error loading ${file}:`, e);
+            // Continue with other files even if one fails
           }
         }
         
         devLog(`Total products loaded: ${mockProducts.length}`);
+        
+        // If no products loaded, add some fallback data
+        if (mockProducts.length === 0) {
+          devLog('No products loaded from CSV, adding fallback products');
+          // Add a few hardcoded products as fallback
+          const fallbackProducts = [
+            {
+              id: 'fallback-product-1',
+              name: 'Sample Product 1',
+              brand: 'Sample Brand',
+              category: 'Parfum',
+              description: 'Fallback product for testing',
+              imageUrl: '/fallback-product.png',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              offers: [{
+                id: 'fallback-offer-1',
+                productId: 'fallback-product-1',
+                retailerId: 'sample',
+                retailerName: 'Sample Store',
+                price: 25.99,
+                currency: 'EUR',
+                isOnSale: false,
+                stockStatus: 'in_stock' as const,
+                productUrl: '#',
+                lastUpdated: new Date().toISOString()
+              }],
+              lowestPrice: 25.99,
+              highestPrice: 25.99,
+              priceRange: '€25.99'
+            }
+          ];
+          mockProducts.push(...fallbackProducts);
+        }
       }
       
       referenceDataState.loaded = true;
