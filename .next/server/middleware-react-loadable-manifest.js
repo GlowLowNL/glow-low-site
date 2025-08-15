@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"components/product/product-page.tsx -> ./offers-list\":{\"id\":\"components/product/product-page.tsx -> ./offers-list\",\"files\":[\"static/chunks/_app-pages-browser_components_product_offers-list_tsx.js\"]},\"components/product/product-page.tsx -> ./price-history-chart\":{\"id\":\"components/product/product-page.tsx -> ./price-history-chart\",\"files\":[\"static/chunks/_app-pages-browser_components_product_price-history-chart_tsx.js\"]}}"
