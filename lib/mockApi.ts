@@ -140,12 +140,41 @@ async function loadReferenceDatasetsPublic() {
           }
           let categoryRaw = get('category') || get('top_category') || 'Parfum';
           categoryRaw = categoryRaw.replace(/_/g,' ').toLowerCase();
-          if (categoryRaw === 'parfum' || categoryRaw === 'perfume') categoryRaw = 'Parfum';
-          if (categoryRaw === 'make-up' || categoryRaw === 'make up') categoryRaw = 'Make-up';
-            if (categoryRaw === 'huidverzorging' || categoryRaw === 'skincare') categoryRaw = 'Huidverzorging';
+          if (['parfum','perfume','fragrance'].includes(categoryRaw)) categoryRaw = 'Parfum';
+          if (['make-up','make up','makeup'].includes(categoryRaw)) categoryRaw = 'Make-up';
+          if (['huidverzorging','skincare','skin care'].includes(categoryRaw)) categoryRaw = 'Huidverzorging';
           const category = categoryRaw.charAt(0).toUpperCase() + categoryRaw.slice(1);
           const subcategoryRaw = get('subcategory') || get('type') || '';
-          const subcategory = subcategoryRaw ? subcategoryRaw.replace(/_/g,' ').replace(/\s+/g,' ').trim() : undefined;
+          let subcategory = subcategoryRaw ? subcategoryRaw.replace(/_/g,' ').replace(/\s+/g,' ').trim() : undefined;
+          if (subcategory) {
+            const lower = subcategory.toLowerCase();
+            const mapSub: Record<string,string> = {
+              'eau de parfum':'Eau De Parfum',
+              'eau de toilette':'Eau De Toilette',
+              'lichaamsspray':'Lichaamsspray',
+              'body spray':'Lichaamsspray',
+              'bodyspray':'Lichaamsspray',
+              'haarparfum':'Haarparfum',
+              'hair mist':'Haarparfum',
+              'hair perfume':'Haarparfum',
+              'reiniging':'Reiniging',
+              'cleanser':'Reiniging',
+              'moisturizer':'Vochtinbrengende Crème',
+              'serum':'Serums',
+              'serums':'Serums',
+              'foundation':'Foundation',
+              'concealer':'Concealer',
+              'lipstick':'Lipstick',
+              'mascara':'Mascara',
+              'oogschaduw':'Oogschaduw',
+              'eyeshadow':'Oogschaduw',
+              'eyeliner':'Eyeliner',
+              'damesparfum':'Damesparfum',
+              'herenparfum':'Herenparfum',
+              'unisex':'Unisex'
+            };
+            if (mapSub[lower]) subcategory = mapSub[lower];
+          }
           const size = get('size') || get('volume') || undefined;
           const idBase = get('internal_code') || get('internal_code2') || `${file.replace(/\.csv$/,'')}-${i}`;
           const urlVal = get('url');

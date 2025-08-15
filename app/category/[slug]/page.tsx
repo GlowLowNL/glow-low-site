@@ -8,21 +8,31 @@ function ClientCategoryFilters(_props: any) { return null; }
 interface Props { params: { slug: string }; searchParams: { page?: string; brand?: string | string[]; min?: string; max?: string; sort?: string } }
 
 function categoryMeta(slug: string) {
+  const baseDesc = 'Vergelijk prijzen en aanbiedingen.';
   const map: Record<string, { title: string; description: string }> = {
-    'huidverzorging': {
-      title: 'Huidverzorging prijzen vergelijken | GlowLow',
-      description: 'Vergelijk prijzen van serums, moisturizers en meer huidverzorging en vind de beste deals.'
-    },
-    'make-up': {
-      title: 'Make-up deals & prijzen | GlowLow',
-      description: 'Foundation, mascara, lipstick en meer – vergelijk make-up prijzen en aanbiedingen.'
-    },
-    'parfum': {
-      title: 'Parfum aanbiedingen vergelijken | GlowLow',
-      description: 'Ontdek dames-, heren- en unisex geuren en vind de laagste parfumprijzen.'
-    }
+    'huidverzorging': { title: 'Huidverzorging prijzen vergelijken | GlowLow', description: 'Vergelijk prijzen van serums, moisturizers, reiniging en meer huidverzorging.' },
+    'reiniging': { title: 'Reiniging skincare deals | GlowLow', description: 'Gezichtsreinigers en cleansers vergelijken en besparen.' },
+    'vochtinbrengende-crème': { title: 'Moisturizers vergelijken | GlowLow', description: 'Hydraterende crèmes en gel moisturizers prijzen vergelijken.' },
+    'serums': { title: 'Serums prijsvergelijking | GlowLow', description: 'Vitamine C, retinol en hydraterende serums vergelijken.' },
+    'zonnebescherming': { title: 'Zonnebescherming SPF deals | GlowLow', description: 'SPF, zonnebrand en gezichtsbescherming prijzen.' },
+    'anti-aging': { title: 'Anti-aging skincare vergelijken | GlowLow', description: 'Anti-aging serums & treatments prijzen.' },
+    'make-up': { title: 'Make-up deals & prijzen | GlowLow', description: 'Foundation, mascara, lipstick en meer – vergelijk make-up prijzen.' },
+    'foundation': { title: 'Foundation prijzen vergelijken | GlowLow', description: 'Diverse foundations: dekkend, matte, hydrating.' },
+    'concealer': { title: 'Concealer deals | GlowLow', description: 'Vergelijk concealers voor elke huidtype.' },
+    'lipstick': { title: 'Lipstick aanbiedingen | GlowLow', description: 'Matte, glossy en liquid lipsticks prijzen.' },
+    'mascara': { title: 'Mascara vergelijken | GlowLow', description: 'Volume, lengte en waterproof mascara deals.' },
+    'oogschaduw': { title: 'Oogschaduw aanbiedingen | GlowLow', description: 'Paletten en singles – vergelijk oogschaduw prijzen.' },
+    'eyeliner': { title: 'Eyeliner deals | GlowLow', description: 'Liquid, gel en pencil eyeliners vergelijken.' },
+    'parfum': { title: 'Parfum aanbiedingen vergelijken | GlowLow', description: 'Dames-, heren- en unisex geuren vinden tegen lage prijzen.' },
+    'damesparfum': { title: 'Damesparfum prijzen | GlowLow', description: 'Vergelijk populaire damesgeuren.' },
+    'herenparfum': { title: 'Herenparfum aanbiedingen | GlowLow', description: 'Vergelijk heren geuren & bespaar.' },
+    'unisex': { title: 'Unisex parfum deals | GlowLow', description: 'Genderneutrale geuren vergelijken.' },
+    'eau-de-parfum': { title: 'Eau de Parfum prijzen | GlowLow', description: 'EDP geuren vergelijken.' },
+    'eau-de-toilette': { title: 'Eau de Toilette prijzen | GlowLow', description: 'EDT geuren vergelijken.' },
+    'lichaamsspray': { title: 'Lichaamsspray aanbiedingen | GlowLow', description: 'Body mists & sprays vergelijken.' },
+    'haarparfum': { title: 'Haarparfum deals | GlowLow', description: 'Hair mists & haarparfums vergelijken.' }
   };
-  return map[slug] || { title: `${slug} | GlowLow`, description: 'Vergelijk prijzen en aanbiedingen.' };
+  return map[slug] || { title: `${slug} | GlowLow`, description: baseDesc };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,12 +44,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const page = Number(searchParams.page) || 1;
-  const readable = decodeURIComponent(params.slug);
+  const readable = decodeURIComponent(params.slug).replace(/-/g,' ');
   const brands = (searchParams.brand ? (Array.isArray(searchParams.brand) ? searchParams.brand : searchParams.brand.split(',')) : undefined) as string[] | undefined;
   const minPrice = searchParams.min ? Number(searchParams.min) : undefined;
   const maxPrice = searchParams.max ? Number(searchParams.max) : undefined;
   const sortBy = (searchParams.sort as any) || undefined;
-  const productsResponse = await getProducts({ category: mapSlugToCategory(params.slug), brand: brands, minPrice, maxPrice, sortBy }, page, 24);
+  const mappedCategory = mapSlugToCategory(params.slug);
+  const productsResponse = await getProducts({ category: mappedCategory, brand: brands, minPrice, maxPrice, sortBy }, page, 24);
   const site = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || 'https://glowlow.nl';
   const canonical = `${site}/category/${params.slug}` + (page > 1 ? `?page=${page}` : '');
   const breadcrumbLd = {
@@ -98,12 +109,43 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 }
 
 function mapSlugToCategory(slug: string) {
-  switch (slug) {
+  const s = slug.toLowerCase();
+  switch (s) {
     case 'huidverzorging': return 'Huidverzorging';
-    case 'make-up': return 'Make-up';
-    case 'parfum': return 'Parfum';
+    case 'reiniging': return 'Reiniging';
+    case 'vochtinbrengende-crème':
+    case 'vochtinbrengende-creme':
+    case 'moisturizer': return 'Vochtinbrengende Crème';
+    case 'serums':
+    case 'serum': return 'Serums';
+    case 'zonnebescherming':
+    case 'spf': return 'Zonnebescherming';
+    case 'anti-aging':
+    case 'antiaging': return 'Anti-Aging';
+    case 'make-up':
+    case 'makeup': return 'Make-up';
+    case 'foundation': return 'Foundation';
+    case 'concealer': return 'Concealer';
+    case 'lipstick': return 'Lipstick';
+    case 'mascara': return 'Mascara';
+    case 'oogschaduw':
+    case 'eyeshadow': return 'Oogschaduw';
+    case 'eyeliner': return 'Eyeliner';
+    case 'parfum':
+    case 'perfume': return 'Parfum';
+    case 'damesparfum': return 'Damesparfum';
+    case 'herenparfum': return 'Herenparfum';
+    case 'unisex': return 'Unisex';
+    case 'eau-de-parfum': return 'Eau De Parfum';
+    case 'eau-de-toilette': return 'Eau De Toilette';
+    case 'lichaamsspray':
+    case 'bodyspray':
+    case 'body-spray': return 'Lichaamsspray';
+    case 'haarparfum':
+    case 'hair-mist':
+    case 'hair-perfume': return 'Haarparfum';
     default:
       return slug.replace(/-/g,' ') // hyphens to spaces
-        .replace(/\b(\w)/g, s => s.toUpperCase()); // capitalize words
+        .replace(/\b(\w)/g, s2 => s2.toUpperCase()); // capitalize words
   }
 }
