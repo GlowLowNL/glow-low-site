@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ProductWithOffers } from "@/types/product";
 import { cn } from "@/lib/utils";
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: ProductWithOffers;
@@ -11,8 +12,11 @@ interface ProductCardProps {
 const FALLBACK_IMAGE = "/fallback-product.png";
 
 export function ProductCard({ product, className }: ProductCardProps) {
-  const src = product.imageUrl?.startsWith('http') ? product.imageUrl : (product.imageUrl || FALLBACK_IMAGE);
-  const finalSrc = src.includes('unsplash.com') ? `${src}&auto=format&fit=crop&w=600&h=600&q=80` : src;
+  const [broken, setBroken] = useState(false);
+  const raw = product.imageUrl || FALLBACK_IMAGE;
+  const httpSrc = raw.startsWith('http') ? raw : FALLBACK_IMAGE;
+  const base = broken ? FALLBACK_IMAGE : httpSrc;
+  const finalSrc = base.includes('unsplash.com') ? `${base}&auto=format&fit=crop&w=600&h=600&q=80` : base;
   return (
     <Link href={`/product/${product.id}`} className={cn("group block", className)}>
       <div className="relative overflow-hidden rounded-2xl bg-card/70 backdrop-blur border transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
@@ -25,8 +29,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             loading="lazy"
             priority={false}
-            onError={(e) => { (e.currentTarget as any).src = FALLBACK_IMAGE; }}
+            onError={() => setBroken(true)}
             placeholder="empty"
+            quality={80}
           />
           <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/30 via-transparent to-transparent" />
         </div>
