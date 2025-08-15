@@ -32,12 +32,9 @@ export default async function TestDataPage() {
               <div className="w-20 h-20 bg-gray-200 rounded flex-shrink-0">
                 {product.imageUrl && (
                   <img 
-                    src={product.imageUrl} 
+                    src={product.imageUrl || '/fallback-product.png'} 
                     alt={product.name}
                     className="w-full h-full object-cover rounded"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/fallback-product.png';
-                    }}
                   />
                 )}
               </div>
