@@ -1,17 +1,1 @@
-{
-  "components/product/product-page.tsx -> ./offers-list": {
-    "id": 3965,
-    "files": [
-      "static/chunks/137-f735fe7b76a5d54b.js",
-      "static/chunks/965.b067f565a8528178.js"
-    ]
-  },
-  "components/product/product-page.tsx -> ./price-history-chart": {
-    "id": 2227,
-    "files": [
-      "static/chunks/793-2d892e8e47a0e2ab.js",
-      "static/chunks/150.e8bf522028b07f5a.js",
-      "static/chunks/227.33a4559751839710.js"
-    ]
-  }
-}
+{}

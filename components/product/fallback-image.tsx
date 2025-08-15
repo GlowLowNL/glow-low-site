@@ -10,7 +10,7 @@ interface FallbackImageProps extends Omit<ImageProps, 'src' | 'alt'> {
   fallbackSrc?: string;
 }
 
-export function FallbackImage({ src, alt, fallbackSrc = FALLBACK_IMAGE, ...rest }: FallbackImageProps) {
+export function FallbackImage({ src, alt, fallbackSrc = FALLBACK_IMAGE, fill, priority, ...rest }: FallbackImageProps) {
   const [imgSrc, setImgSrc] = useState(src);
   const [isError, setIsError] = useState(false);
 
