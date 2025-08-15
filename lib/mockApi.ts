@@ -107,18 +107,15 @@ async function loadReferenceDatasetsPublic() {
   if (datasetsLoading) return datasetsLoading;
   datasetsLoading = (async () => {
     try {
-      // Discover dataset files via manifest.json (created in /public/datasets)
+      // Hardcoded dataset files since manifest might not be accessible
+      const datasetFiles = ['douglas_sample.csv', 'multi_shop_parfum.csv'];
       const base = (typeof window !== 'undefined') ? '' : (process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || '');
-      const manifestRes = await fetch(`${base}/datasets/manifest.json`).catch(() => null);
-      if (!manifestRes || !manifestRes.ok) { referenceDataState.loaded = true; return; }
-      const manifest: { files: string[] } = await manifestRes.json().catch(() => ({ files: [] }));
-      if (!manifest.files?.length) { referenceDataState.loaded = true; return; }
 
       interface Agg { base: Omit<ProductWithOffers, 'offers'|'lowestPrice'|'highestPrice'|'priceRange'> & { offers: PriceOffer[] } }
       const mapAgg = new Map<string, Agg>();
       const norm = (v: string) => v.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/g,'').trim().toLowerCase();
 
-      for (const file of manifest.files) {
+      for (const file of datasetFiles) {
         const csvRes = await fetch(`${base}/datasets/${file}`).catch(() => null);
         if (!csvRes || !csvRes.ok) continue;
         const raw = await csvRes.text();
@@ -231,6 +228,8 @@ async function loadReferenceDatasetsPublic() {
         }
         injectProducts(merged);
         devLog('Referentiedatasets (public) gemerged producten:', merged.length);
+        devLog('Categories found:', merged.map(p => p.category).filter((v,i,a) => a.indexOf(v) === i));
+        devLog('Subcategories found:', merged.map(p => p.subcategory).filter(Boolean).filter((v,i,a) => a.indexOf(v) === i));
       }
       referenceDataState.loaded = true;
       syntheticGenerated.done = true;
@@ -364,24 +363,23 @@ export const getPriceHistory = async (productId: string, days = 30): Promise<Pri
 export const getCategories = async (): Promise<Category[]> => {
   await loadReferenceDatasetsPublic();
   await loadCsvProductsOnce();
-  // Dynamisch afleiden uit producten
-  const mapCat: Record<string, { cat: Category; subs: Record<string, Category> }> = {};
+  // Alleen hoofdcategorieën afleiden uit producten
+  const mapCat: Record<string, Category> = {};
   for (const p of mockProducts) {
     if (!p.category) continue;
     if (!mapCat[p.category]) {
       const id = 'cat-' + Object.keys(mapCat).length;
-      mapCat[p.category] = { cat: { id, name: p.category, slug: p.category.toLowerCase().replace(/[^a-z0-9]+/g,'-'), description: undefined, children: [] }, subs: {} };
-    }
-    if (p.subcategory) {
-      const bucket = mapCat[p.category];
-      if (!bucket.subs[p.subcategory]) {
-        const sid = bucket.cat.id + '-' + (Object.keys(bucket.subs).length+1);
-        bucket.subs[p.subcategory] = { id: sid, name: p.subcategory, slug: p.subcategory.toLowerCase().replace(/[^a-z0-9]+/g,'-'), parentId: bucket.cat.id } as Category;
-      }
+      mapCat[p.category] = { 
+        id, 
+        name: p.category, 
+        slug: p.category.toLowerCase().replace(/[^a-z0-9]+/g,'-'), 
+        description: undefined, 
+        children: [] 
+      };
     }
   }
-  const out: Category[] = Object.values(mapCat).map(v => ({ ...v.cat, children: Object.values(v.subs) }));
-  return out.length ? out : mockCategories;
+  const out: Category[] = Object.values(mapCat);
+  return out.length ? out : mockCategories.map(cat => ({ ...cat, children: [] }));
 };
 
 export const getBrands = async (): Promise<Brand[]> => {
