@@ -111,6 +111,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 function mapSlugToCategory(slug: string) {
   const s = slug.toLowerCase();
   switch (s) {
+    // Original categories
     case 'huidverzorging': return 'Huidverzorging';
     case 'reiniging': return 'Reiniging';
     case 'vochtinbrengende-crème':
@@ -136,14 +137,16 @@ function mapSlugToCategory(slug: string) {
     case 'damesparfum': return 'Damesparfum';
     case 'herenparfum': return 'Herenparfum';
     case 'unisex': return 'Unisex';
-    case 'eau-de-parfum': return 'Eau De Parfum';
-    case 'eau-de-toilette': return 'Eau De Toilette';
+    // New subcategory-based categories from CSV data
+    case 'eau-de-parfum': return 'Eau de parfum';
     case 'lichaamsspray':
     case 'bodyspray':
     case 'body-spray': return 'Lichaamsspray';
+    case 'damesparfum': return 'Damesparfum';
     case 'haarparfum':
     case 'hair-mist':
     case 'hair-perfume': return 'Haarparfum';
+    case 'eau-de-toilette': return 'Eau De Toilette';
     default:
       return slug.replace(/-/g,' ') // hyphens to spaces
         .replace(/\b(\w)/g, s2 => s2.toUpperCase()); // capitalize words

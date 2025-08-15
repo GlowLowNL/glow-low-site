@@ -133,7 +133,10 @@ async function loadReferenceDatasetsPublic() {
               
               const name = get('name') || get('product_name');
               const brand = get('brand');
-              const category = get('category') || 'Parfum';
+              const mainCategory = get('category') || 'Parfum';
+              const subcategory = get('subcategory');
+              // Use subcategory as the main category for better navigation
+              const category = subcategory || mainCategory;
               const price = parseFloat(get('price')) || Math.random() * 50 + 10;
               const imageUrl = get('imageurl') || get('image_url') || '/fallback-product.png';
               const rating = parseFloat(get('rating')) || 0;
@@ -151,6 +154,7 @@ async function loadReferenceDatasetsPublic() {
                 name,
                 brand,
                 category,
+                subcategory: subcategory !== category ? subcategory : undefined,
                 description: `${name} by ${brand}`,
                 imageUrl,
                 averageRating: rating > 0 ? rating : undefined,
