@@ -17,6 +17,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <SimpleImage
             src={product.imageUrl}
             alt={product.name}
+            productType={product.subcategory}
             className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
           />
           <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/30 via-transparent to-transparent" />

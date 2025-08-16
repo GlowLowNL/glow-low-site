@@ -30,14 +30,14 @@ async function loadImageMapping(): Promise<Record<string, string>> {
 
 // Get the best available image URL
 function getImageUrl(originalUrl: string, productName: string, brand: string, category: string): string {
-  // Try to use local mapping first
-  if (imageMappingCache[originalUrl]) {
-    return imageMappingCache[originalUrl];
-  }
-  
-  // Fallback to original URL if available
+  // First, try the original URL if it exists (let the browser handle it)
   if (originalUrl && originalUrl.startsWith('http')) {
     return originalUrl;
+  }
+  
+  // If we have a local mapping, use that as backup
+  if (imageMappingCache[originalUrl]) {
+    return imageMappingCache[originalUrl];
   }
   
   // Generate a category-based placeholder URL as last resort

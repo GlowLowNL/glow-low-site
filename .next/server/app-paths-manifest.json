@@ -1,1 +1,13 @@
-{}
+{
+  "/debug/page": "app/debug/page.js",
+  "/category/[slug]/page": "app/category/[slug]/page.js",
+  "/page": "app/page.js",
+  "/test-data/page": "app/test-data/page.js",
+  "/api/categories/route": "app/api/categories/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/robots.txt/route": "app/robots.txt/route.js",
+  "/sitemap.xml/route": "app/sitemap.xml/route.js",
+  "/api/products/route": "app/api/products/route.js",
+  "/product/[id]/page": "app/product/[id]/page.js",
+  "/api/products/[id]/route": "app/api/products/[id]/route.js"
+}

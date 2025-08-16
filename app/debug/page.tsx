@@ -1,4 +1,5 @@
 import { loadAllProducts } from '@/lib/server-data';
+import { DebugImage } from '@/components/debug/debug-image';
 
 export default async function DebugPage() {
   const products = await loadAllProducts();
@@ -18,21 +19,10 @@ export default async function DebugPage() {
             <p className="text-sm"><strong>Image URL:</strong> {product.imageUrl}</p>
             
             <div className="mt-4 flex gap-4">
-              <div className="w-32 h-32 border">
-                <img 
-                  src={product.imageUrl} 
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    console.log('Image failed to load:', product.imageUrl);
-                    e.currentTarget.style.border = '2px solid red';
-                  }}
-                  onLoad={(e) => {
-                    console.log('Image loaded successfully:', product.imageUrl);
-                    e.currentTarget.style.border = '2px solid green';
-                  }}
-                />
-              </div>
+              <DebugImage 
+                src={product.imageUrl} 
+                alt={product.name}
+              />
               <div className="text-xs space-y-1">
                 <p><strong>Image exists:</strong> {product.imageUrl ? 'Yes' : 'No'}</p>
                 <p><strong>Is SVG:</strong> {product.imageUrl?.includes('.svg') ? 'Yes' : 'No'}</p>
