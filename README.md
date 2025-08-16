@@ -1,87 +1,151 @@
-# GlowLow - Beauty Prijsvergelijker
+# 🌟 GlowLow - Premium Beauty Price Comparison Platform
 
-Een moderne, elegante prijsvergelijkingssite voor beautyproducten. Gebouwd met Next.js 14 (App Router), shadcn/ui, en TanStack Query.
+A professional Next.js e-commerce platform showcasing beauty products with intelligent price comparison and affiliate integration capabilities.
 
 ## 🚀 Features
 
-- **🔍 Geavanceerde zoekfunctie** met autocomplete
-- **📊 Prijshistorie grafieken** met Recharts  
-- **🛍️ Realtime prijsvergelijking** tussen retailers
-- **📱 Volledig responsive** design
-- **⚡ Optimale performance** met Next.js App Router
-- **🎨 Modern UI** geïnspireerd door Glossier en Apple
+- **1,600+ Products** across 5 major beauty categories
+- **Professional Image System** with category-based fallbacks
+- **Multi-retailer Integration** with realistic pricing
+- **Server-side Optimized** for performance and SEO
+- **Responsive Design** with modern UI/UX
+- **API-ready Architecture** for affiliate partnerships
 
-## 🏗️ Projectstructuur
+## 📊 Dataset Coverage
+
+- **Make-up**: 429 products (26.7%)
+- **Huidverzorging**: 416 products (25.9%)
+- **Lichaam & Wellness**: 345 products (21.5%)
+- **Parfum**: 251 products (15.6%)
+- **Haarverzorging**: 130 products (8.1%)
+
+## 🏗️ Project Structure
 
 ```
-├── app/                    # Next.js App Router
-│   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Homepage 
-│   └── product/[id]/      # Dynamische productpagina's
-├── components/            # React componenten
-│   ├── ui/               # shadcn/ui base componenten  
-│   ├── layout/           # Layout componenten (Header, Footer)
-│   ├── home/             # Homepage specifieke componenten
-│   └── product/          # Product gerelateerde componenten
-├── lib/                  # Utilities en API functies
-│   ├── mockApi.ts        # Mock API voor ontwikkeling
-│   └── utils.ts          # shadcn/ui utilities
-├── types/                # TypeScript type definities
-└── styles/               # CSS/Tailwind configuratie
+glow-low-site/
+├── app/                    # Next.js 14 App Router
+│   ├── api/               # API routes for data access
+│   ├── category/          # Category pages
+│   ├── product/           # Product detail pages
+│   └── layout.tsx         # Root layout
+├── components/            # React components
+│   ├── home/             # Homepage components
+│   ├── layout/           # Layout components
+│   ├── product/          # Product-related components
+│   ├── category/         # Category components
+│   └── ui/               # Reusable UI components
+├── lib/                  # Utilities and data management
+│   ├── server-data.ts    # Server-side data processing
+│   ├── config.ts         # Configuration
+│   └── utils.ts          # Helper utilities
+├── public/               # Static assets
+│   ├── datasets/         # CSV product data
+│   └── images/           # Product images and fallbacks
+├── scripts/              # Build and maintenance scripts
+│   ├── analyze-data.js   # Dataset analysis for AWIN
+│   ├── smart-image-downloader.js  # Image acquisition
+│   ├── create-fallback-images.js  # SVG fallback generation
+│   └── create-image-mapping.js    # Image routing system
+└── types/                # TypeScript definitions
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ Development
 
-- **Framework:** Next.js 14 (App Router)
-- **Styling:** Tailwind CSS + shadcn/ui  
-- **Data Fetching:** TanStack Query
-- **Charts:** Recharts
-- **Language:** TypeScript
-- **Icons:** Lucide React
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
 
-## 🏃‍♂️ Development
-
+### Installation
 ```bash
-# Installeer dependencies
 npm install
-
-# Start development server  
-npm run dev
-
-# Build voor productie
-npm run build
 ```
 
-## 📝 API Endpoints (Mock)
+### Development Server
+```bash
+npm run dev
+```
 
-- `GET /products` - Lijst van alle producten (gepagineerd)
-- `GET /products/{id}` - Specifiek product detail  
-- `GET /price-history/{id}` - Prijshistorie voor product
+### Build for Production
+```bash
+npm run build
+npm start
+```
 
-## 🎨 Design Richtlijnen
+## � Available Scripts
 
-- **Kleurschema:** Neutrals met subtiele accenten
-- **Typography:** Inter font family
-- **Spacing:** Consistent 8px grid systeem  
-- **Components:** Gebaseerd op shadcn/ui voor consistentie
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run analyze-data` - Generate dataset analysis report
+- `npm run download-images` - Download product images
+- `npm run setup-images` - Create fallback images and mapping
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests
 
-## 🔄 Component Organisatie
+## 🎨 Image Management
 
-### Layout Components (`components/layout/`)
-- `header.tsx` - Site header met navigatie en zoekbalk
-- `footer.tsx` - Site footer
-- `providers.tsx` - React Query en andere providers
+The platform uses an intelligent image system:
 
-### Home Components (`components/home/`)  
-- `hero.tsx` - Homepage hero sectie
-- `featured-products.tsx` - Aanbevolen producten
-- `categories.tsx` - Categorieën showcase
-- `brands.tsx` - Populaire merken
-- `newsletter.tsx` - Email signup
-- `search.tsx` - Zoekfunctionaliteit met autocomplete
+1. **Real Images**: Downloaded product images when available
+2. **Category Fallbacks**: Beautiful SVG placeholders for each category
+3. **Progressive Enhancement**: System improves as more images are acquired
 
-### Product Components (`components/product/`)
-- `product-card.tsx` - Herbruikbare productkaart
-- `product-page.tsx` - Volledige productpagina layout
-- `offers-list.tsx` - Lijst van aanbiedingen per retailer
-- `price-history-chart.tsx` - Prijsgeschiedenis grafiek
+### Image Commands
+```bash
+npm run download-images    # Download product images with hotlink protection bypass
+npm run create-fallbacks   # Generate category-specific SVG fallbacks  
+npm run create-mapping     # Create comprehensive image routing
+npm run setup-images       # Complete image system setup
+```
+
+## 🔧 Configuration
+
+Key configuration files:
+- `lib/config.ts` - Application settings
+- `tailwind.config.js` - UI styling
+- `next.config.js` - Next.js configuration
+- `tsconfig.json` - TypeScript settings
+
+## 📈 Analytics & Reporting
+
+Generate comprehensive dataset analysis:
+```bash
+npm run analyze-data
+```
+
+This creates detailed reports in `/public/awin-dataset-report.json` showing:
+- Product distribution across categories
+- Brand coverage and diversity
+- Market positioning data
+- Technical capabilities overview
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+```bash
+npx vercel --prod
+```
+
+### Manual Deployment
+```bash
+npm run build
+# Deploy the .next folder and public assets
+```
+
+## 🏢 Partnership Ready
+
+This platform is specifically designed for affiliate partnership approval with features that demonstrate:
+
+- **Professional Architecture**: Server-side optimization, proper API structure
+- **Comprehensive Data**: 1,600+ products with detailed information
+- **User Experience**: Responsive design, fast loading, intuitive navigation
+- **Technical Excellence**: TypeScript, modern frameworks, scalable structure
+- **Business Viability**: Multi-retailer integration, price comparison functionality
+
+## 📄 License
+
+Private project for GlowLow Beauty Platform.
+
+---
+
+Built with ❤️ using Next.js 14, TypeScript, and Tailwind CSS

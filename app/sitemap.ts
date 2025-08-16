@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getProducts } from '@/lib/mockApi';
+import { loadAllProducts, getAllCategories } from '@/lib/server-data';
 import { MAX_PAGE_SIZE } from '@/lib/config';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -7,24 +7,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified: new Date() }
   ];
-  // Accumulate all products (paginate)
-  let page = 1;
-  const pageSize = Math.min(MAX_PAGE_SIZE, 100); // safeguard
-  let totalPages = 1;
-  const categoriesSet = new Set<string>();
-  const productEntries: MetadataRoute.Sitemap = [];
-  do {
-    const res = await getProducts({}, page, pageSize);
-    totalPages = res.totalPages;
-    for (const p of res.data) {
-      if (p.category) categoriesSet.add(p.category);
-      productEntries.push({ url: `${base}/product/${p.id}`, lastModified: new Date(p.updatedAt || p.createdAt || Date.now()) });
-    }
-    page++;
-  } while (page <= totalPages);
+  
+  // Get all products and categories from server data
+  const products = await loadAllProducts();
+  const categories = await getAllCategories();
 
-  const categoryEntries: MetadataRoute.Sitemap = Array.from(categoriesSet).map(c => ({
-    url: `${base}/category/${c.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`,
+  const productEntries: MetadataRoute.Sitemap = products.map(p => ({
+    url: `${base}/product/${p.id}`,
+    lastModified: new Date(p.updatedAt || p.createdAt || Date.now())
+  }));
+
+  const categoryEntries: MetadataRoute.Sitemap = categories.map(c => ({
+    url: `${base}/category/${c.slug}`,
     lastModified: new Date()
   }));
 

@@ -1,0 +1,32 @@
+{
+  "totalProducts": 1604,
+  "downloadedImages": 5,
+  "fallbackImages": 1599,
+  "successRate": "0%",
+  "categories": {
+    "Parfum": {
+      "total": 34,
+      "downloaded": 0
+    },
+    "PARFUM": {
+      "total": 251,
+      "downloaded": 5
+    },
+    "HUIDVERZORGING": {
+      "total": 416,
+      "downloaded": 0
+    },
+    "MAKE-UP": {
+      "total": 429,
+      "downloaded": 0
+    },
+    "HAARVERZORGING": {
+      "total": 130,
+      "downloaded": 0
+    },
+    "LICHAAM & WELLNESS": {
+      "total": 344,
+      "downloaded": 0
+    }
+  }
+}

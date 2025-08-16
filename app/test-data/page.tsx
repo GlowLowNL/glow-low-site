@@ -1,8 +1,9 @@
-import { getProducts, getCategories } from '@/lib/mockApi';
+import { loadAllProducts, getAllCategories } from '@/lib/server-data';
 
 export default async function TestDataPage() {
-  const products = await getProducts({}, 1, 10);
-  const categories = await getCategories();
+  const allProducts = await loadAllProducts();
+  const products = allProducts.slice(0, 10); // Get first 10 for display
+  const categories = await getAllCategories();
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -25,8 +26,8 @@ export default async function TestDataPage() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold mb-4">Products ({products.total})</h2>
-        {products.data.map(product => (
+        <h2 className="text-xl font-semibold mb-4">Products ({allProducts.length})</h2>
+        {products.map(product => (
           <div key={product.id} className="mb-4 p-4 border rounded">
             <div className="flex gap-4">
               <div className="w-20 h-20 bg-gray-200 rounded flex-shrink-0">

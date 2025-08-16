@@ -1,4 +1,4 @@
-import { getProducts } from '@/lib/mockApi';
+import { loadAllProducts } from '@/lib/server-data';
 import { ProductCard } from '@/components/product/product-card';
 import { Metadata } from 'next';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
@@ -50,7 +50,61 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const maxPrice = searchParams.max ? Number(searchParams.max) : undefined;
   const sortBy = (searchParams.sort as any) || undefined;
   const mappedCategory = mapSlugToCategory(params.slug);
-  const productsResponse = await getProducts({ category: mappedCategory, brand: brands, minPrice, maxPrice, sortBy }, page, 24);
+  const allProducts = await loadAllProducts();
+  
+  // Apply filters
+  let filteredProducts = allProducts.filter(p => 
+    p.category.toLowerCase() === mappedCategory.toLowerCase()
+  );
+  
+  if (brands) {
+    filteredProducts = filteredProducts.filter(p => 
+      brands.some(brand => p.brand.toLowerCase().includes(brand.toLowerCase()))
+    );
+  }
+  
+  if (minPrice !== undefined) {
+    filteredProducts = filteredProducts.filter(p => {
+      const price = p.offers?.[0]?.price || 0;
+      return price >= minPrice;
+    });
+  }
+  
+  if (maxPrice !== undefined) {
+    filteredProducts = filteredProducts.filter(p => {
+      const price = p.offers?.[0]?.price || Infinity;
+      return price <= maxPrice;
+    });
+  }
+  
+  // Apply sorting
+  if (sortBy) {
+    switch (sortBy) {
+      case 'price_asc':
+        filteredProducts.sort((a, b) => (a.offers?.[0]?.price || 0) - (b.offers?.[0]?.price || 0));
+        break;
+      case 'price_desc':
+        filteredProducts.sort((a, b) => (b.offers?.[0]?.price || 0) - (a.offers?.[0]?.price || 0));
+        break;
+      case 'rating_desc':
+        filteredProducts.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+        break;
+      case 'name_asc':
+        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+    }
+  }
+  
+  // Pagination
+  const startIndex = (page - 1) * 24;
+  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + 24);
+  
+  const productsResponse = {
+    data: paginatedProducts,
+    total: filteredProducts.length,
+    page,
+    totalPages: Math.ceil(filteredProducts.length / 24)
+  };
   const site = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || 'https://glowlow.nl';
   const canonical = `${site}/category/${params.slug}` + (page > 1 ? `?page=${page}` : '');
   const breadcrumbLd = {

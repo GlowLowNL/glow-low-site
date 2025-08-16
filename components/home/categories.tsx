@@ -1,23 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getCategories, getProducts } from '@/lib/mockApi';
+import { getAllCategories, loadAllProducts } from '@/lib/server-data';
 
 export default async function Categories() {
-  const categories = await getCategories();
+  const categories = await getAllCategories();
   if (!categories.length) return null;
 
+  // Get all products once for efficiency
+  const allProducts = await loadAllProducts();
+
   // Build category cards with representative product image from dataset
-  const cards = await Promise.all(categories.map(async cat => {
-    // fetch 1 top rated (or first) product for this category
-    const resp = await getProducts({ category: cat.name, sortBy: 'rating_desc' }, 1, 1).catch(() => null);
-    const img = resp?.data[0]?.imageUrl || '/fallback-product.png';
+  const cards = categories.map(cat => {
+    // Find a product for this category
+    const categoryProduct = allProducts.find(p => p.category === cat.name);
+    const img = categoryProduct?.imageUrl || '/fallback-product.png';
     return { 
       name: cat.name, 
       slug: cat.slug, 
       href: `/category/${cat.slug}`, 
       image: img
     };
-  }));
+  });
 
   return (
     <section id="categories" className="py-20 bg-background">

@@ -5,9 +5,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "next lint",
     "test": "jest",
-    "download-images": "node scripts/download-images.js",
-    "analyze-data": "node scripts/analyze-data.js"
+    "analyze-data": "node scripts/analyze-data.js",
+    "download-images": "node scripts/smart-image-downloader.js",
+    "create-fallbacks": "node scripts/create-fallback-images.js",
+    "create-mapping": "node scripts/create-image-mapping.js",
+    "setup-images": "npm run create-fallbacks && npm run create-mapping"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",

@@ -1,9 +1,0 @@
-id,name,brand,category,subcategory,description,imageUrl,volume,sku,price,currency,url
-csv-2001,Acqua Di Gio Eau de Toilette,ARMANI,Parfum,Herenparfum,Frisse aquatische herenparfum,https://via.placeholder.com/400x400.png?text=Gio,50ml,ADG-50,54.95,EUR,https://example.com/gio
-csv-2002,Libre Eau de Parfum,YVES SAINT LAURENT,Parfum,Damesparfum,Moderne bloemige damesgeur,https://via.placeholder.com/400x400.png?text=Libre,30ml,LIBRE-30,72.50,EUR,https://example.com/libre
-csv-2003,Advanced Night Repair Serum,ESTEE LAUDER,Huidverzorging,Serums,Herstellend nachtserum,https://via.placeholder.com/400x400.png?text=ANR,30ml,ANR-30,89.00,EUR,https://example.com/anr
-csv-2004,Ultra Facial Cream,KIEHL'S,Huidverzorging,Vochtinbrengende Crème,Iconische dagelijkse moisturizer,https://via.placeholder.com/400x400.png?text=UFC,50ml,UFC-50,34.99,EUR,https://example.com/ufc
-csv-2005,Lash Sensational Mascara,MAYBELLINE,Make-up,Mascara,Volumizing mascara met waaiereffect,https://via.placeholder.com/400x400.png?text=Lash,9ml,LSM-9,11.49,EUR,https://example.com/lash
-csv-2006,Double Wear Stay-in-Place Foundation,ESTEE LAUDER,Make-up,Foundation,Lange houdbare foundation,https://via.placeholder.com/400x400.png?text=DW,30ml,DW-30,46.00,EUR,https://example.com/doublewear
-csv-2007,Glow Tonic,PIXIBEAUTY,Huidverzorging,Reiniging,Exfoliërende toner met glycolzuur,https://via.placeholder.com/400x400.png?text=Glow,100ml,GT-100,18.99,EUR,https://example.com/glowtonic
-csv-2008,Better Than Sex Mascara,TOO FACED,Make-up,Mascara,Iconische volumemascara,https://via.placeholder.com/400x400.png?text=BTS,8ml,BTS-8,25.95,EUR,https://example.com/bts

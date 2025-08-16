@@ -1,4 +1,4 @@
-import { getProductById, getProducts } from "@/lib/mockApi";
+import { loadAllProducts } from '@/lib/server-data';
 import { ProductPage } from "@/components/product/product-page";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
@@ -10,7 +10,8 @@ type Props = {
 
 // Generate metadata for the product page
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await getProductById(params.id);
+  const allProducts = await loadAllProducts();
+  const product = allProducts.find(p => p.id === params.id);
 
   if (!product) {
     return { title: "Product niet gevonden" };
@@ -30,8 +31,8 @@ export const revalidate = 300; // Revalidate product pages every 5 minutes for f
 // Statically generate routes for all products
 export async function generateStaticParams() {
   try {
-    const productsResponse = await getProducts({}, 1, 100); // Fetch all products
-    return productsResponse.data.map((product: any) => ({ id: product.id }));
+    const allProducts = await loadAllProducts();
+    return allProducts.slice(0, 100).map((product: any) => ({ id: product.id })); // Limit to first 100 for build performance
   } catch (e) {
     console.error('Failed to generate static params', e);
     return [];
@@ -39,7 +40,8 @@ export async function generateStaticParams() {
 }
 
 export default async function Page({ params }: Props) {
-  const product = await getProductById(params.id);
+  const allProducts = await loadAllProducts();
+  const product = allProducts.find(p => p.id === params.id);
   if (!product) {
     notFound();
   }

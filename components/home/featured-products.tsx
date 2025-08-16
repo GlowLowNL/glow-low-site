@@ -1,17 +1,17 @@
-import { getProducts } from '@/lib/mockApi';
+import { loadAllProducts } from '@/lib/server-data';
 import { ProductCard } from '../product/product-card';
 
 export default async function FeaturedProducts() {
   try {
-    const data = await getProducts({}, 1, 4); // Fetch first 4 products for featured section
-    const products = data?.data;
+    const allProducts = await loadAllProducts();
+    const products = allProducts.slice(0, 4); // Get first 4 products for featured section
 
     if (!products || products.length === 0) {
       return (
         <section id="featured" className="py-16 bg-gradient-to-b from-muted/40 to-background">
           <div className="container mx-auto px-4">
             <div className="text-center py-8 text-muted-foreground">
-              Geen producten gevonden ({data?.total || 0} totaal)
+              Geen producten gevonden ({allProducts.length || 0} totaal)
             </div>
           </div>
         </section>
@@ -31,7 +31,7 @@ export default async function FeaturedProducts() {
             ))}
           </div>
           <div className="text-center mt-4 text-xs text-muted-foreground">
-            Toont {products.length} van {data?.total} producten
+            Toont {products.length} van {allProducts.length} producten
           </div>
         </div>
       </section>

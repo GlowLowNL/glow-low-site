@@ -5,8 +5,52 @@ import { Product, ProductWithOffers, Category, SearchFilters, PaginatedResponse 
 
 let productsCache: ProductWithOffers[] = [];
 let categoriesCache: Category[] = [];
+let imageMappingCache: Record<string, string> = {};
 let lastLoadTime = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Load image mapping for local images
+async function loadImageMapping(): Promise<Record<string, string>> {
+  if (Object.keys(imageMappingCache).length > 0) {
+    return imageMappingCache;
+  }
+  
+  try {
+    const mappingPath = path.join(process.cwd(), 'public/images/image-mapping.json');
+    const mappingData = await fs.readFile(mappingPath, 'utf-8');
+    imageMappingCache = JSON.parse(mappingData);
+    console.log(`📷 Loaded ${Object.keys(imageMappingCache).length} image mappings`);
+  } catch (error) {
+    console.log('📷 No image mapping found, using original URLs');
+    imageMappingCache = {};
+  }
+  
+  return imageMappingCache;
+}
+
+// Get the best available image URL
+function getImageUrl(originalUrl: string, productName: string, brand: string, category: string): string {
+  // Try to use local mapping first
+  if (imageMappingCache[originalUrl]) {
+    return imageMappingCache[originalUrl];
+  }
+  
+  // Fallback to original URL if available
+  if (originalUrl && originalUrl.startsWith('http')) {
+    return originalUrl;
+  }
+  
+  // Generate a category-based placeholder URL as last resort
+  const categoryFallbacks = {
+    'Make-up': '/images/fallback-makeup.svg',
+    'Huidverzorging': '/images/fallback-skincare.svg', 
+    'Lichaam & Wellness': '/images/fallback-wellness.svg',
+    'Parfum': '/images/fallback-perfume.svg',
+    'Haarverzorging': '/images/fallback-haircare.svg'
+  };
+  
+  return categoryFallbacks[category as keyof typeof categoryFallbacks] || '/images/fallback-product.svg';
+}
 
 // Professional retailer data for AWIN presentation
 const RETAILER_MAPPING = {
@@ -64,6 +108,9 @@ function createProductFromRow(row: any, source: string, index: number): ProductW
     const reviewCount = parseInt(row.review_count || '0') || Math.floor(Math.random() * 500 + 50);
     const basePrice = price > 0 ? price : Math.random() * 50 + 10;
     
+    // Get the best available image URL using mapping
+    const finalImageUrl = getImageUrl(imageUrl, name, brand, category);
+    
     return {
       id: productId,
       name,
@@ -71,7 +118,7 @@ function createProductFromRow(row: any, source: string, index: number): ProductW
       category,
       subcategory,
       description: row.description || generateProductDescription(name, brand, category),
-      imageUrl,
+      imageUrl: finalImageUrl,
       averageRating: Math.round(rating * 10) / 10,
       reviewCount,
       priceRange: formatPriceRange(basePrice),
@@ -144,6 +191,9 @@ export async function loadAllProducts(): Promise<ProductWithOffers[]> {
 
   const products: ProductWithOffers[] = [];
   const datasetsPath = path.join(process.cwd(), 'public/datasets');
+  
+  // Load image mapping first
+  await loadImageMapping();
   
   try {
     const files = await fs.readdir(datasetsPath);

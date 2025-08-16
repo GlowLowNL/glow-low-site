@@ -102,7 +102,10 @@ export function ProductPage({ product }: ProductPageProps) {
             <h2 className="mb-4 text-lg font-semibold">
               Prijsgeschiedenis (30 dagen)
             </h2>
-            <PriceHistoryChart productId={product.id} />
+            <PriceHistoryChart 
+              productId={product.id} 
+              currentPrice={product.offers[0]?.price} 
+            />
           </div>
         </div>
       </div>
