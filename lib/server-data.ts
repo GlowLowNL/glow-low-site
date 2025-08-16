@@ -196,36 +196,81 @@ export async function loadAllProducts(): Promise<ProductWithOffers[]> {
   await loadImageMapping();
   
   try {
-    const files = await fs.readdir(datasetsPath);
-    const csvFiles = files.filter(file => file.endsWith('.csv'));
-    
-    for (const file of csvFiles) {
-      const filePath = path.join(datasetsPath, file);
-      const content = await fs.readFile(filePath, 'utf-8');
-      const lines = content.trim().split('\n');
+    // First, try to load the enhanced Douglas JSON data
+    try {
+      const douglasJsonPath = path.join(datasetsPath, 'douglas_enhanced.json');
+      const douglasContent = await fs.readFile(douglasJsonPath, 'utf-8');
+      const douglasProducts = JSON.parse(douglasContent);
       
-      if (lines.length < 2) continue;
+      console.log(`📦 Loading ${douglasProducts.length} enhanced Douglas products`);
       
-      const headers = lines[0].split(',').map(h => h.trim());
-      
-      for (let i = 1; i < lines.length; i++) {
+      douglasProducts.forEach((product: any) => {
         try {
-          const values = parseCSVLine(lines[i]);
-          if (values.length < headers.length - 2) continue;
+          // Convert Douglas enhanced product to our format
+          const formattedProduct: ProductWithOffers = {
+            id: product.id,
+            name: product.name,
+            brand: product.brand,
+            category: product.category,
+            subcategory: product.subcategory,
+            description: product.description || generateProductDescription(product.name, product.brand, product.category),
+            imageUrl: getImageUrl(product.imageUrl, product.name, product.brand, product.category),
+            averageRating: product.rating || product.averageRating || (Math.random() * 2 + 3),
+            reviewCount: product.reviewCount || Math.floor(Math.random() * 500 + 50),
+            priceRange: product.price || product.priceRange || '€0.00',
+            offers: product.offers || generateRealisticOffers(
+              parseFloat(product.price?.replace('€ ', '').replace(',', '.') || '0'),
+              parseFloat(product.originalPrice?.replace('€ ', '').replace(',', '.') || '0'),
+              product.name
+            ),
+            sku: product.id,
+            createdAt: product.scrapedAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
           
-          const row: any = {};
-          headers.forEach((header, index) => {
-            row[header] = values[index] || '';
-          });
-          
-          if (!row.name || !row.brand || row.name.length < 2) continue;
-          
-          const product = createProductFromRow(row, file, i);
-          if (product) {
-            products.push(product);
-          }
+          products.push(formattedProduct);
         } catch (error) {
-          // Skip problematic rows
+          console.log(`⚠️ Error processing Douglas product ${product.id}:`, error);
+        }
+      });
+      
+      console.log(`✅ Successfully loaded ${products.length} Douglas products`);
+      
+    } catch (error) {
+      console.log('📦 Douglas enhanced data not found, falling back to CSV files');
+      
+      // Fallback to existing CSV loading logic
+      const files = await fs.readdir(datasetsPath);
+      const csvFiles = files.filter(file => file.endsWith('.csv'));
+      
+      for (const file of csvFiles) {
+        const filePath = path.join(datasetsPath, file);
+        const content = await fs.readFile(filePath, 'utf-8');
+        const lines = content.trim().split('\n');
+        
+        if (lines.length < 2) continue;
+        
+        const headers = lines[0].split(',').map(h => h.trim());
+        
+        for (let i = 1; i < lines.length; i++) {
+          try {
+            const values = parseCSVLine(lines[i]);
+            if (values.length < headers.length - 2) continue;
+            
+            const row: any = {};
+            headers.forEach((header, index) => {
+              row[header] = values[index] || '';
+            });
+            
+            if (!row.name || !row.brand || row.name.length < 2) continue;
+            
+            const product = createProductFromRow(row, file, i);
+            if (product) {
+              products.push(product);
+            }
+          } catch (error) {
+            // Skip problematic rows
+          }
         }
       }
     }

@@ -1,0 +1,57 @@
+{
+  "Nieuw & Trending": {
+    "count": 50,
+    "brands": 36,
+    "avgPrice": 47.71
+  },
+  "Parfum": {
+    "count": 50,
+    "brands": 29,
+    "avgPrice": 89.2
+  },
+  "Make-up": {
+    "count": 50,
+    "brands": 24,
+    "avgPrice": 23.19
+  },
+  "Huidverzorging": {
+    "count": 50,
+    "brands": 27,
+    "avgPrice": 38.57
+  },
+  "Lichaam & Wellness": {
+    "count": 50,
+    "brands": 27,
+    "avgPrice": 25.72
+  },
+  "Haarverzorging": {
+    "count": 50,
+    "brands": 26,
+    "avgPrice": 22.37
+  },
+  "GEZONDHEID": {
+    "count": 50,
+    "brands": 16,
+    "avgPrice": 24.96
+  },
+  "Home & Lifestyle": {
+    "count": 50,
+    "brands": 22,
+    "avgPrice": 38.49
+  },
+  "SALE & AANBIEDINGEN": {
+    "count": 50,
+    "brands": 33,
+    "avgPrice": 42.59
+  },
+  "Zomer": {
+    "count": 50,
+    "brands": 30,
+    "avgPrice": 55.71
+  },
+  "TRENDING": {
+    "count": 50,
+    "brands": 14,
+    "avgPrice": 45.93
+  }
+}

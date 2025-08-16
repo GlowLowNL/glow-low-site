@@ -8,6 +8,8 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const navLinks = [
     { href: '/products', label: 'Alle Producten' },
+    { href: '/douglas', label: 'Douglas Premium' },
+    { href: '/demo', label: 'Demo Features' },
     { href: '/category/huidverzorging', label: 'Huidverzorging' },
     { href: '/category/make-up', label: 'Make-up' },
     { href: '/category/parfum', label: 'Parfum' }
