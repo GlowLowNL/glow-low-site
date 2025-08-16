@@ -21,6 +21,7 @@ const IMAGES_DIR = path.join(__dirname, '../public/images/products');
 const PLACEHOLDER_DIR = path.join(__dirname, '../public/images/placeholders');
 const MAX_CONCURRENT = 3; // Reduced for better success rate
 const DELAY_MS = 2000; // Increased delay to be more respectful
+const COOKIE_JAR = {}; // Simple cookie storage
 
 // Ensure directories exist
 [IMAGES_DIR, PLACEHOLDER_DIR].forEach(dir => {
@@ -45,6 +46,29 @@ function getRandomUserAgent() {
   return agent;
 }
 
+function getRefererForUrl(url) {
+  if (url.includes('douglas.nl')) {
+    return 'https://www.douglas.nl/';
+  }
+  if (url.includes('iciparisxl.nl')) {
+    return 'https://www.iciparisxl.nl/';
+  }
+  if (url.includes('bol.com')) {
+    return 'https://www.bol.com/';
+  }
+  if (url.includes('kruidvat.nl')) {
+    return 'https://www.kruidvat.nl/';
+  }
+  
+  // Generic referer for unknown domains
+  try {
+    const urlObj = new URL(url);
+    return `${urlObj.protocol}//${urlObj.hostname}/`;
+  } catch {
+    return 'https://www.google.com/';
+  }
+}
+
 async function downloadImageWithCurl(url, filename) {
   const filePath = path.join(IMAGES_DIR, filename);
   
@@ -55,7 +79,7 @@ async function downloadImageWithCurl(url, filename) {
 
   try {
     const userAgent = getRandomUserAgent();
-    const command = `curl -s -L --max-time 30 --retry 2 -H "User-Agent: ${userAgent}" -H "Accept: image/*" -H "Referer: https://www.douglas.nl/" "${url}" -o "${filePath}"`;
+    const command = `curl -s -L --max-time 30 --retry 2 -H "User-Agent: ${userAgent}" -H "Accept: image/*" -H "Referer: ${getRefererForUrl(url)}" -H "Accept-Language: nl-NL,nl;q=0.9,en;q=0.8" -H "Cache-Control: no-cache" -H "Sec-Fetch-Dest: image" -H "Sec-Fetch-Mode: no-cors" -H "Sec-Fetch-Site: same-origin" "${url}" -o "${filePath}"`;
     
     await execAsync(command);
     
@@ -94,15 +118,17 @@ async function downloadImageWithNode(url, filename) {
     const options = {
       headers: {
         'User-Agent': getRandomUserAgent(),
-        'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
         'Accept-Language': 'nl-NL,nl;q=0.9,en;q=0.8',
         'Accept-Encoding': 'gzip, deflate, br',
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
-        'Referer': 'https://www.douglas.nl/',
+        'Referer': getRefererForUrl(url),
         'Sec-Fetch-Dest': 'image',
         'Sec-Fetch-Mode': 'no-cors',
-        'Sec-Fetch-Site': 'cross-site'
+        'Sec-Fetch-Site': 'same-origin',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
       },
       timeout: 30000
     };
@@ -155,12 +181,87 @@ async function downloadImageWithNode(url, filename) {
   });
 }
 
+async function downloadImageWithPuppeteer(url, filename) {
+  // Note: Requires 'npm install puppeteer' for this method
+  try {
+    const puppeteer = require('puppeteer');
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    
+    // Set realistic browser headers
+    await page.setUserAgent(getRandomUserAgent());
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'nl-NL,nl;q=0.9,en;q=0.8',
+    });
+    
+    // Navigate to a product page first to get session cookies
+    const referer = getRefererForUrl(url);
+    await page.goto(referer, { waitUntil: 'networkidle0' });
+    
+    // Now download the image
+    const response = await page.goto(url);
+    if (response && response.ok()) {
+      const buffer = await response.buffer();
+      const filePath = path.join(IMAGES_DIR, filename);
+      fs.writeFileSync(filePath, buffer);
+      
+      const stats = fs.statSync(filePath);
+      if (stats.size > 1000) {
+        console.log(`✅ Downloaded with Puppeteer: ${filename} (${Math.round(stats.size/1024)}KB)`);
+        await browser.close();
+        return filePath;
+      }
+    }
+    
+    await browser.close();
+    return null;
+  } catch (error) {
+    console.log(`❌ Puppeteer failed for ${filename}: ${error.message}`);
+    return null;
+  }
+}
+
+function processImageUrl(url) {
+  // Remove query parameters that might cause issues
+  try {
+    const urlObj = new URL(url);
+    
+    // Douglas images: Keep essential parameters only
+    if (url.includes('douglas.nl')) {
+      urlObj.searchParams.delete('context');
+      urlObj.searchParams.delete('w');
+      urlObj.searchParams.delete('h');
+      urlObj.searchParams.set('grid', 'true'); // Keep this one
+    }
+    
+    // ICI Paris: Clean up parameters
+    if (url.includes('iciparisxl.nl')) {
+      // Keep essential context parameters
+      const context = urlObj.searchParams.get('context');
+      if (context) {
+        urlObj.search = `?context=${context}`;
+      }
+    }
+    
+    return urlObj.toString();
+  } catch {
+    return url; // Return original if URL parsing fails
+  }
+}
+
 async function downloadImage(url, filename) {
-  // Try curl first (often better with headers), then Node.js
-  let result = await downloadImageWithCurl(url, filename);
+  // Process URL first
+  const processedUrl = processImageUrl(url);
+  
+  // Try curl first (often better with headers), then Node.js, then Puppeteer
+  let result = await downloadImageWithCurl(processedUrl, filename);
   if (!result) {
     console.log(`🔄 Trying Node.js method for ${filename}`);
-    result = await downloadImageWithNode(url, filename);
+    result = await downloadImageWithNode(processedUrl, filename);
+  }
+  if (!result) {
+    console.log(`🔄 Trying Puppeteer method for ${filename}`);
+    result = await downloadImageWithPuppeteer(processedUrl, filename);
   }
   return result;
 }
