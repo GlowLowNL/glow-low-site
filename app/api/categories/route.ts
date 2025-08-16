@@ -1,15 +1,12 @@
-import { getCategories } from '@/lib/mockApi';
+import { getAllCategories } from '@/lib/server-data';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const categories = await getCategories();
+    const categories = await getAllCategories();
     return NextResponse.json(categories);
   } catch (error) {
-    console.error('API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch categories' }, 
-      { status: 500 }
-    );
+    console.error('Categories API error:', error);
+    return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
   }
 }
