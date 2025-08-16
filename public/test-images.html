@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SVG Test</title>
+    <style>
+        .test-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+        .test-item {
+            border: 2px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        .test-item img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            background: #f0f0f0;
+        }
+        .test-item h3 {
+            margin: 10px 0 5px 0;
+            font-size: 14px;
+        }
+        .status {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>SVG Fallback Images Test</h1>
+    <div class="test-container">
+        <div class="test-item">
+            <h3>Fallback Product</h3>
+            <img src="/images/fallback-product.svg" alt="Product fallback" onload="this.nextElementSibling.innerHTML='✅ Loaded'; this.nextElementSibling.className='status success';" onerror="this.nextElementSibling.innerHTML='❌ Failed'; this.nextElementSibling.className='status error';">
+            <div class="status">Loading...</div>
+        </div>
+        <div class="test-item">
+            <h3>Fallback Makeup</h3>
+            <img src="/images/fallback-makeup.svg" alt="Makeup fallback" onload="this.nextElementSibling.innerHTML='✅ Loaded'; this.nextElementSibling.className='status success';" onerror="this.nextElementSibling.innerHTML='❌ Failed'; this.nextElementSibling.className='status error';">
+            <div class="status">Loading...</div>
+        </div>
+        <div class="test-item">
+            <h3>Fallback Skincare</h3>
+            <img src="/images/fallback-skincare.svg" alt="Skincare fallback" onload="this.nextElementSibling.innerHTML='✅ Loaded'; this.nextElementSibling.className='status success';" onerror="this.nextElementSibling.innerHTML='❌ Failed'; this.nextElementSibling.className='status error';">
+            <div class="status">Loading...</div>
+        </div>
+        <div class="test-item">
+            <h3>Fallback Perfume</h3>
+            <img src="/images/fallback-perfume.svg" alt="Perfume fallback" onload="this.nextElementSibling.innerHTML='✅ Loaded'; this.nextElementSibling.className='status success';" onerror="this.nextElementSibling.innerHTML='❌ Failed'; this.nextElementSibling.className='status error';">
+            <div class="status">Loading...</div>
+        </div>
+        <div class="test-item">
+            <h3>Fallback Wellness</h3>
+            <img src="/images/fallback-wellness.svg" alt="Wellness fallback" onload="this.nextElementSibling.innerHTML='✅ Loaded'; this.nextElementSibling.className='status success';" onerror="this.nextElementSibling.innerHTML='❌ Failed'; this.nextElementSibling.className='status error';">
+            <div class="status">Loading...</div>
+        </div>
+        <div class="test-item">
+            <h3>Fallback Haircare</h3>
+            <img src="/images/fallback-haircare.svg" alt="Haircare fallback" onload="this.nextElementSibling.innerHTML='✅ Loaded'; this.nextElementSibling.className='status success';" onerror="this.nextElementSibling.innerHTML='❌ Failed'; this.nextElementSibling.className='status error';">
+            <div class="status">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Test page loaded - checking SVG files');
+        
+        // Additional test: try to fetch the SVG content directly
+        fetch('/images/fallback-product.svg')
+            .then(response => response.text())
+            .then(data => {
+                console.log('✅ SVG fetch successful, content length:', data.length);
+                console.log('SVG content preview:', data.substring(0, 100) + '...');
+            })
+            .catch(error => {
+                console.log('❌ SVG fetch failed:', error);
+            });
+    </script>
+</body>
+</html>
