@@ -51,44 +51,51 @@ function getCategoryFallback(productType?: string, alt?: string): string {
 export function SimpleImage({ src, alt, className, productType }: SimpleImageProps) {
   const [currentSrc, setCurrentSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   const handleError = () => {
     if (!hasError) {
-      console.log('❌ Image failed, falling back:', src);
       setHasError(true);
       const fallback = getCategoryFallback(productType, alt);
       setCurrentSrc(fallback);
+      setIsLoading(false);
     }
   };
 
   const handleLoad = () => {
-    if (src.startsWith('http')) {
-      console.log('✅ Original image loaded successfully:', src);
-    }
+    setIsLoading(false);
   };
 
-  // Check if it's a small/low-quality image
-  const isSmallImage = currentSrc.includes('/products/ICI_');
-
+  const isFallback = hasError || currentSrc.includes('/images/fallback-');
+  
   return (
-    <img
-      src={currentSrc || '/images/fallback-product.svg'}
-      alt={alt}
-      className={className}
-      style={{
-        objectFit: isSmallImage ? 'contain' : 'cover',
-        objectPosition: 'center',
-        width: '100%',
-        height: '100%',
-        display: 'block',
-        imageRendering: isSmallImage ? 'crisp-edges' : 'auto',
-        filter: isSmallImage ? 'contrast(1.1) saturate(1.15)' : 'none',
-        background: isSmallImage ? '#f8fafc' : 'transparent',
-        padding: isSmallImage ? '12px' : '0'
-      }}
-      onLoad={handleLoad}
-      onError={handleError}
-      loading="lazy"
-    />
+    <div className="relative w-full h-full bg-white overflow-hidden">
+      {isLoading && !isFallback && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-gray-200 border-t-gray-400 rounded-full animate-spin" />
+        </div>
+      )}
+      <img
+        src={currentSrc || '/images/fallback-product.svg'}
+        alt={alt}
+        className={`${className} ${
+          isFallback 
+            ? 'object-contain p-8 opacity-60' 
+            : 'object-contain p-3'
+        }`}
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'block',
+          imageRendering: 'crisp-edges',
+          WebkitImageSmoothing: false,
+          filter: isFallback ? 'none' : 'contrast(1.1) saturate(1.05)',
+          background: 'white'
+        }}
+        onLoad={handleLoad}
+        onError={handleError}
+        loading="lazy"
+      />
+    </div>
   );
 }

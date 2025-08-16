@@ -8,9 +8,9 @@ export default async function FeaturedProducts() {
 
     if (!products || products.length === 0) {
       return (
-        <section id="featured" className="py-16 bg-gradient-to-b from-muted/40 to-background">
+        <section id="featured" className="py-16 bg-gray-50/50">
           <div className="container mx-auto px-4">
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-gray-500">
               Geen producten gevonden ({allProducts.length || 0} totaal)
             </div>
           </div>
@@ -19,18 +19,18 @@ export default async function FeaturedProducts() {
     }
 
     return (
-      <section id="featured" className="py-16 bg-gradient-to-b from-muted/40 to-background">
+      <section id="featured" className="py-16 bg-gray-50/30">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Aanbevolen producten</h2>
-            <a href="#" className="text-sm text-primary hover:underline font-medium">Alle producten</a>
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Aanbevolen producten</h2>
+            <a href="/products" className="text-sm text-gray-600 hover:text-gray-900 hover:underline font-medium transition-colors">Alle producten →</a>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {products.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
-          <div className="text-center mt-4 text-xs text-muted-foreground">
+          <div className="text-center mt-8 text-xs text-gray-500">
             Toont {products.length} van {allProducts.length} producten
           </div>
         </div>
@@ -39,9 +39,9 @@ export default async function FeaturedProducts() {
   } catch (error) {
     console.error('Error loading featured products:', error);
     return (
-      <section id="featured" className="py-16 bg-gradient-to-b from-muted/40 to-background">
+      <section id="featured" className="py-16 bg-gray-50/50">
         <div className="container mx-auto px-4">
-          <div className="text-center py-8 text-destructive">
+          <div className="text-center py-8 text-red-500">
             Fout bij laden producten: {String(error)}
           </div>
         </div>
@@ -52,16 +52,21 @@ export default async function FeaturedProducts() {
 
 export function FeaturedProductsSkeleton() {
   return (
-    <section id="featured" className="py-16 bg-gradient-to-b from-muted/40 to-background">
+    <section id="featured" className="py-16 bg-gray-50/50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Aanbevolen producten</h2>
-          <div className="h-9 w-28 rounded-full bg-muted animate-pulse" />
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Aanbevolen producten</h2>
+          <div className="h-5 w-28 rounded bg-gray-200 animate-pulse" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="relative rounded-2xl bg-card/60 border p-4 h-72 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-muted/20 animate-pulse" />
+            <div key={i} className="relative rounded-lg bg-white border border-gray-200 p-3 h-64 overflow-hidden">
+              <div className="aspect-square bg-gray-100 animate-pulse rounded mb-3" />
+              <div className="space-y-2">
+                <div className="h-3 bg-gray-100 rounded animate-pulse" />
+                <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                <div className="h-3 w-20 bg-gray-100 rounded animate-pulse" />
+              </div>
             </div>
           ))}
         </div>

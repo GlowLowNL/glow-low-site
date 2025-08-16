@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react';
 export default function Header() {
   const [open, setOpen] = useState(false);
   const navLinks = [
+    { href: '/products', label: 'Alle Producten' },
     { href: '/category/huidverzorging', label: 'Huidverzorging' },
     { href: '/category/make-up', label: 'Make-up' },
     { href: '/category/parfum', label: 'Parfum' }
