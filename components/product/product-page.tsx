@@ -1,9 +1,9 @@
 "use client";
 
 import { ProductWithOffers } from "@/types/product";
-import Image from "next/image";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import { SimpleImage } from "./simple-image";
 
 // Dynamic imports (code splitting)
 const OffersList = dynamic(
@@ -57,13 +57,11 @@ export function ProductPage({ product }: ProductPageProps) {
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
         {/* Product Image */}
         <div className="relative aspect-square w-full overflow-hidden rounded-3xl border bg-gradient-to-br from-muted to-muted/40">
-          <Image
+          <SimpleImage
             src={product.imageUrl}
             alt={product.name}
-            fill
-            className="object-cover transition-transform duration-700 ease-out hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 50vw"
-            priority
+            productType={product.subcategory}
+            className="w-full h-full transition-transform duration-700 ease-out hover:scale-105"
           />
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-transparent" />
         </div>

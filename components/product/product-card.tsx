@@ -13,7 +13,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   return (
     <Link href={`/product/${product.id}`} className={cn("group block", className)}>
       <div className="relative overflow-hidden rounded-2xl bg-card/70 backdrop-blur border transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
-        <div className="relative aspect-square w-full bg-gradient-to-br from-gray-50 via-white to-gray-100 border-b border-gray-100">
+        <div className="relative aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100">
           <SimpleImage
             src={product.imageUrl}
             alt={product.name}
