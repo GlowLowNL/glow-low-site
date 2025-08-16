@@ -88,10 +88,9 @@ export function SimpleImage({ src, alt, className, productType }: SimpleImagePro
           height: '100%',
           display: 'block',
           imageRendering: 'crisp-edges',
-          WebkitImageSmoothing: false,
           filter: isFallback ? 'none' : 'contrast(1.1) saturate(1.05)',
           background: 'white'
-        }}
+        } as React.CSSProperties}
         onLoad={handleLoad}
         onError={handleError}
         loading="lazy"

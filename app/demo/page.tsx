@@ -56,7 +56,7 @@ export default async function EnhancedProductDemo() {
       currency: 'EUR',
       isOnSale: true,
       productUrl: 'https://douglas.nl',
-      stockStatus: 'in_stock',
+      stockStatus: 'in_stock' as const,
       shippingInfo: '1-2 dagen',
       lastUpdated: new Date().toISOString()
     },
@@ -70,7 +70,7 @@ export default async function EnhancedProductDemo() {
       currency: 'EUR',
       isOnSale: true,
       productUrl: 'https://iciparisxl.nl',
-      stockStatus: 'in_stock',
+      stockStatus: 'in_stock' as const,
       shippingInfo: '1-2 dagen',
       lastUpdated: new Date().toISOString()
     },
@@ -83,7 +83,7 @@ export default async function EnhancedProductDemo() {
       currency: 'EUR',
       isOnSale: false,
       productUrl: 'https://bol.com',
-      stockStatus: 'in_stock',
+      stockStatus: 'in_stock' as const,
       shippingInfo: '1-2 dagen',
       lastUpdated: new Date().toISOString()
     }
@@ -145,7 +145,7 @@ export default async function EnhancedProductDemo() {
                     <Star
                       key={i}
                       className={`w-4 h-4 ${
-                        i < Math.floor(demoProduct.averageRating)
+                        i < Math.floor(demoProduct.averageRating || 0)
                           ? 'fill-yellow-400 text-yellow-400'
                           : 'text-gray-300'
                       }`}
@@ -153,7 +153,7 @@ export default async function EnhancedProductDemo() {
                   ))}
                 </div>
                 <span className="text-sm text-gray-600">
-                  {demoProduct.averageRating} ({demoProduct.reviewCount} reviews)
+                  {demoProduct.averageRating || 0} ({demoProduct.reviewCount || 0} reviews)
                 </span>
               </div>
               

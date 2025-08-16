@@ -102,7 +102,7 @@ export function ProductPage({ product }: ProductPageProps) {
             </h2>
             <PriceHistoryChart 
               productId={product.id} 
-              currentPrice={product.offers[0]?.price} 
+              currentPrice={product.offers?.find(o => o.price)?.price || undefined} 
             />
           </div>
         </div>

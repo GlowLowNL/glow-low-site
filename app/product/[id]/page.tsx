@@ -70,7 +70,7 @@ export default async function Page({ params }: Props) {
             '@type': 'Offer',
             url: o.productUrl || canonical,
             priceCurrency: o.currency || 'EUR',
-            price: o.price?.toFixed(2),
+            price: o.price ? o.price.toFixed(2) : undefined,
             availability: 'https://schema.org/' + (o.stockStatus === 'in_stock' ? 'InStock' : 'OutOfStock'),
             seller: { '@type': 'Organization', name: o.retailerName }
           })),

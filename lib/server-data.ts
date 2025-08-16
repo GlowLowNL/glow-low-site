@@ -90,8 +90,8 @@ function createProductFromRow(row: any, source: string, index: number): ProductW
   try {
     const name = row.name || '';
     const brand = row.brand || '';
-    const price = parseFloat(row.price || '0');
-    const originalPrice = parseFloat(row.was_price || row.originalPrice || row.originalprice || '0');
+    const price = parseFloat(row.price || '0') || 0;
+    const originalPrice = parseFloat(row.was_price || row.originalPrice || row.originalprice || '0') || 0;
     
     let category = row.top_category || row.category || 'Overig';
     let subcategory = row.type || row.subcategory || '';
@@ -106,7 +106,7 @@ function createProductFromRow(row: any, source: string, index: number): ProductW
     const productId = `${source.replace('.csv', '')}-${index}`;
     const rating = parseFloat(row.rating || '0') || (Math.random() * 2 + 3);
     const reviewCount = parseInt(row.review_count || '0') || Math.floor(Math.random() * 500 + 50);
-    const basePrice = price > 0 ? price : Math.random() * 50 + 10;
+    const basePrice = (price > 0 && !isNaN(price)) ? price : Math.random() * 50 + 10;
     
     // Get the best available image URL using mapping
     const finalImageUrl = getImageUrl(imageUrl, name, brand, category);
@@ -174,6 +174,10 @@ function generateRealisticOffers(basePrice: number, originalPrice: number, produ
 }
 
 function formatPriceRange(basePrice: number): string {
+  if (!basePrice || isNaN(basePrice) || basePrice <= 0) {
+    return "Prijs niet beschikbaar";
+  }
+  
   const minPrice = basePrice * 0.95;
   const maxPrice = basePrice * 1.15;
   

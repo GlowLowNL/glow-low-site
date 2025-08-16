@@ -12,7 +12,7 @@ export function OffersList({ offers }: OffersListProps) {
     return <p className="text-muted-foreground text-sm">Momenteel geen aanbiedingen gevonden.</p>;
   }
 
-  const sortedOffers = [...offers].sort((a, b) => a.price - b.price);
+  const sortedOffers = [...offers].sort((a, b) => (a.price || 0) - (b.price || 0));
   const lowest = sortedOffers[0]?.price;
 
   return (
@@ -34,12 +34,12 @@ export function OffersList({ offers }: OffersListProps) {
               </p>
               {offer.isOnSale && offer.originalPrice && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Was <span className="line-through">€{offer.originalPrice.toFixed(2)}</span>
+                  Was <span className="line-through">€{offer.originalPrice?.toFixed(2)}</span>
                 </p>
               )}
             </div>
             <div className="flex items-center gap-4">
-              <p className="text-lg font-semibold text-primary">€{offer.price.toFixed(2)}</p>
+              <p className="text-lg font-semibold text-primary">€{offer.price?.toFixed(2) || '0.00'}</p>
               <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Bekijk bij ${offer.retailerName}`}>
                 <ArrowRight className="h-4 w-4" />
               </Button>

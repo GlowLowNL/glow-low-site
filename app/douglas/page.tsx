@@ -11,7 +11,7 @@ export const metadata = {
 interface CategoryStats {
   [key: string]: {
     count: number;
-    brands: number;
+    brands: Set<string>;
     avgPrice: number;
   };
 }
@@ -29,13 +29,13 @@ async function DouglasProductsGrid() {
   douglasProducts.forEach(product => {
     const cat = product.category;
     if (!categoryStats[cat]) {
-      categoryStats[cat] = { count: 0, brands: new Set(), avgPrice: 0 };
+      categoryStats[cat] = { count: 0, brands: new Set<string>(), avgPrice: 0 };
     }
     categoryStats[cat].count++;
-    (categoryStats[cat] as any).brands.add(product.brand);
+    categoryStats[cat].brands.add(product.brand);
     
     // Parse price for average calculation
-    const priceMatch = product.priceRange.match(/[\d,]+/);
+    const priceMatch = product.priceRange?.match(/[\d,]+/);
     if (priceMatch) {
       const price = parseFloat(priceMatch[0].replace(',', '.'));
       categoryStats[cat].avgPrice += price;
@@ -43,13 +43,17 @@ async function DouglasProductsGrid() {
   });
   
   // Finalize statistics
+  const finalStats: { [key: string]: { count: number; brands: number; avgPrice: number } } = {};
   Object.keys(categoryStats).forEach(cat => {
     const stats = categoryStats[cat];
-    stats.avgPrice = stats.avgPrice / stats.count;
-    (stats as any).brands = (stats as any).brands.size;
+    finalStats[cat] = {
+      count: stats.count,
+      brands: stats.brands.size,
+      avgPrice: stats.avgPrice / stats.count
+    };
   });
   
-  const topCategories = Object.entries(categoryStats)
+  const topCategories = Object.entries(finalStats)
     .sort(([,a], [,b]) => b.count - a.count)
     .slice(0, 6);
   
